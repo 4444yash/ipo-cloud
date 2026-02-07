@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+pandas
+numpy
+scikit-learn
+xgboost
+joblib
+beautifulsoup4
+requests
+selenium
+webdriver-manager
+python-multipart
