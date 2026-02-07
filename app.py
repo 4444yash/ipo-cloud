@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 import sqlite3
 import pandas as pd
+import os
+import uvicorn
 
 app = FastAPI()
 
@@ -19,3 +21,9 @@ def today_predictions():
     )
     conn.close()
     return df.to_dict(orient="records")
+
+
+# 🔥 THIS IS THE CRITICAL PART FOR RAILWAY
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
