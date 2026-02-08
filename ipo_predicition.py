@@ -8,7 +8,7 @@ from datetime import datetime
 # CONFIG
 # ======================
 
-DB_PATH = "ipo_ml_withsme.db"
+DB_PATH = "data/ipo_ml_withsme.db"
 MODEL_PATH = "ipo_xgb_model.pkl"
 
 PROB_THRESHOLD = 0.70
@@ -174,3 +174,4 @@ else:
         [["ipo_name", "gmp_pct", "predicted_probability","listing_date","subscription_x"]]
         .to_string(index=False)
     )
+
