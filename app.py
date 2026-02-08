@@ -5,23 +5,20 @@ import os
 
 app = FastAPI()
 
-# Make sure this folder exists in your GitHub repo!
+# Point to the database folder you confirmed exists
 DB_PATH = "data/ipo_ml_withsme.db"
 
 @app.get("/")
 def home():
-    return {"status": "IPO ML API running"}
+    # Railway pings this to keep your app alive
+    return {"status": "IPO ML API running", "database_found": os.path.exists(DB_PATH)}
 
 @app.get("/today")
 def today_predictions():
-    # Check if DB exists to prevent a silent crash
     if not os.path.exists(DB_PATH):
-        return {"error": f"Database not found at {DB_PATH}. Check your 'data' folder on GitHub."}
-        
+        return {"error": "Database file not found in /data folder"}
+    
     conn = sqlite3.connect(DB_PATH)
-    df = pd.read_sql(
-        "SELECT * FROM ipo_predictions ORDER BY predicted_probability DESC",
-        conn
-    )
+    df = pd.read_sql("SELECT * FROM ipo_predictions ORDER BY predicted_probability DESC", conn)
     conn.close()
     return df.to_dict(orient="records")
