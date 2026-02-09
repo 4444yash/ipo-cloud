@@ -11,7 +11,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 
 
-DB_PATH = r"C:\Users\ASAD\Desktop\NOGPTML\databases\ipo_ml_withsme.db"
+DB_PATH = "data/ipo_ml_withsme.db"
 URL = "https://www.investorgain.com/report/ipo-gmp-live/331/"
 
 def get_driver():
@@ -21,10 +21,7 @@ def get_driver():
     chrome_options.add_argument("--disable-dev-shm-usage")
     chrome_options.add_argument("--disable-gpu")
 
-    driver = webdriver.Chrome(
-        ChromeDriverManager().install(),
-        options=chrome_options
-    )
+  driver = webdriver.Chrome(options=chrome_options) 
     return driver
 
 def clean_number(text):
