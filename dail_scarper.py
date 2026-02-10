@@ -47,7 +47,7 @@ def get_driver():
         service = Service(ChromeDriverManager().install())
 
     driver = webdriver.Chrome(service=service, options=chrome_options)
-    return driver driver
+    return driver
 
 def clean_number(text):
     if not text:
