@@ -8,7 +8,7 @@ from datetime import datetime
 # CONFIG
 # ======================
 
-DB_PATH = "data/ipo_ml_withsme.db"
+DB_PATH = "/app/data/ipo_ml_withsme.db"
 MODEL_PATH = "ipo_xgb_model.pkl"
 
 PROB_THRESHOLD = 0.70
@@ -31,16 +31,22 @@ conn = sqlite3.connect(DB_PATH)
 query = """
 SELECT *
 FROM ipo_raw_data
-WHERE DATE(scraped_at) = DATE('now', 'localtime')
+WHERE scraped_at >= datetime('now', '-24 hours')
 """
 
-df = pd.read_sql(query, conn)
+try:
+    df = pd.read_sql(query, conn)
+except Exception as e:
+    print(f"⚠️ Database error (Table might not exist yet): {e}")
+    conn.close()
+    exit()
+
 conn.close()
 
-print(f"✅ Rows scraped today: {len(df)}")
+print(f"✅ Rows scraped recently: {len(df)}")
 
 if df.empty:
-    print("⚠️ No IPO data scraped today. Exiting safely.")
+    print("⚠️ No IPO data found for today. Exiting.")
     exit()
  
 # ======================
@@ -174,4 +180,5 @@ else:
         [["ipo_name", "gmp_pct", "predicted_probability","listing_date","subscription_x"]]
         .to_string(index=False)
     )
+
 
