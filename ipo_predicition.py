@@ -17,7 +17,7 @@ MODEL_PATH = "ipo_xgb_model.pkl"
 
 # 👇 REPLACE THIS WITH YOUR ACTUAL RAILWAY APP URL
 # Example: "https://ipo-cloud-production.up.railway.app/upload_predictions"
-API_URL = "https://<YOUR-APP-NAME>.up.railway.app/upload_predictions"
+API_URL = "https://ipo-cloud-production.up.railway.app/upload_predictions"
 
 PROB_THRESHOLD = 0.70
 GMP_MIN = 5.0
@@ -142,3 +142,4 @@ try:
 except Exception as e:
     print(f"❌ CONNECTION ERROR: Could not reach API. {e}")
     print(f"   -> Check if '{API_URL}' is correct.")
+
