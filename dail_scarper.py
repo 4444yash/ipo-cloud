@@ -23,25 +23,31 @@ def get_driver():
     Creates a robust headless Chrome driver for Railway/Linux environments.
     """
     chrome_options = Options()
-    chrome_options.add_argument("--headless=new")  # Newest headless mode
-    chrome_options.add_argument("--no-sandbox")    # Required for Docker/Linux
-    chrome_options.add_argument("--disable-dev-shm-usage") # Prevents OOM crashes
+    chrome_options.add_argument("--headless=new")
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")
     chrome_options.add_argument("--disable-gpu")
     chrome_options.add_argument("--window-size=1920,1080")
     chrome_options.add_argument("--disable-blink-features=AutomationControlled")
 
-    # On Railway (with nixpacks), chromedriver is usually at /usr/bin/chromedriver
-    # We try to use the system driver first.
-    try:
-        service = Service("/usr/bin/chromedriver")
-        driver = webdriver.Chrome(service=service, options=chrome_options)
-    except Exception:
-        # Fallback for local testing if system driver isn't found
+    # 1. FORCE BINARY LOCATION (The Fix for Error 127)
+    # Nixpacks installs Chromium here. We must tell Selenium where it is.
+    chrome_options.binary_location = "/usr/bin/chromium"
+
+    # 2. Set up the Service
+    # We prioritize the system installed driver
+    service_path = "/usr/bin/chromedriver"
+    
+    if os.path.exists(service_path):
+        service = Service(service_path)
+    else:
+        # Only use fallback if absolutely necessary (Local testing)
+        print("⚠️ System chromedriver not found. Falling back to webdriver_manager.")
         from webdriver_manager.chrome import ChromeDriverManager
         service = Service(ChromeDriverManager().install())
-        driver = webdriver.Chrome(service=service, options=chrome_options)
 
-    return driver
+    driver = webdriver.Chrome(service=service, options=chrome_options)
+    return driver driver
 
 def clean_number(text):
     if not text:
