@@ -1,6 +1,7 @@
 import sqlite3
 import re
 import os
+import shutil
 from datetime import datetime
 
 from selenium import webdriver
@@ -19,36 +20,31 @@ DB_PATH = "/app/data/ipo_ml_withsme.db"
 URL = "https://www.investorgain.com/report/ipo-gmp-live/331/"
 
 def get_driver():
-    """
-    Creates a robust headless Chrome driver for Railway/Linux environments.
-    """
     chrome_options = Options()
     chrome_options.add_argument("--headless=new")
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
     chrome_options.add_argument("--disable-gpu")
     chrome_options.add_argument("--window-size=1920,1080")
-    chrome_options.add_argument("--disable-blink-features=AutomationControlled")
-
-    # 1. FORCE BINARY LOCATION (The Fix for Error 127)
-    # Nixpacks installs Chromium here. We must tell Selenium where it is.
-    chrome_options.binary_location = "/usr/bin/chromium"
-
-    # 2. Set up the Service
-    # We prioritize the system installed driver
-    service_path = "/usr/bin/chromedriver"
     
-    if os.path.exists(service_path):
-        service = Service(service_path)
+    # 1. FIND CHROMIUM BINARY AUTOMATICALLY
+    chromium_path = shutil.which("chromium")
+    if chromium_path:
+        chrome_options.binary_location = chromium_path
+    
+    # 2. FIND CHROMEDRIVER AUTOMATICALLY
+    driver_path = shutil.which("chromedriver")
+    
+    if driver_path:
+        print(f"✅ Found system driver at: {driver_path}")
+        service = Service(driver_path)
     else:
-        # Only use fallback if absolutely necessary (Local testing)
-        print("⚠️ System chromedriver not found. Falling back to webdriver_manager.")
+        print("⚠️ System driver not found. Trying fallback...")
         from webdriver_manager.chrome import ChromeDriverManager
         service = Service(ChromeDriverManager().install())
 
     driver = webdriver.Chrome(service=service, options=chrome_options)
     return driver
-
 def clean_number(text):
     if not text:
         return 0.0
