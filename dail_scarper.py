@@ -11,7 +11,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 
 
-DB_PATH = "data/ipo_ml_withsme.db"
+DB_PATH = "app/data/ipo_ml_withsme.db"
 URL = "https://www.investorgain.com/report/ipo-gmp-live/331/"
 
 def get_driver():
