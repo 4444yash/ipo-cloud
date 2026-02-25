@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IPO Predictor Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d0f14;
+      --surface: #161a23;
+      --border: #1f2535;
+      --text: #e8eaf0;
+      --muted: #6b7280;
+      --invest: #10b981;
+      --invest-bg: rgba(16,185,129,0.12);
+      --skip: #ef4444;
+      --skip-bg: rgba(239,68,68,0.10);
+      --accent: #6366f1;
+      --accent-glow: rgba(99,102,241,0.25);
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+    }
+
+    /* ── HEADER ── */
+    header {
+      background: linear-gradient(135deg, #1a1d2e 0%, #0f1119 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 28px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .logo-icon {
+      width: 44px; height: 44px;
+      background: linear-gradient(135deg, var(--accent), #8b5cf6);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px;
+      box-shadow: 0 0 20px var(--accent-glow);
+    }
+
+    .logo h1 { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
+    .logo p  { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+    .header-right { display: flex; align-items: center; gap: 16px; }
+
+    #last-updated {
+      font-size: 12px; color: var(--muted);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 6px 14px; border-radius: 20px;
+    }
+
+    #refresh-btn {
+      background: linear-gradient(135deg, var(--accent), #8b5cf6);
+      color: #fff; border: none; cursor: pointer;
+      padding: 8px 18px; border-radius: 8px;
+      font-size: 13px; font-weight: 600;
+      transition: opacity 0.2s, transform 0.15s;
+    }
+    #refresh-btn:hover { opacity: 0.88; transform: translateY(-1px); }
+
+    /* ── STATS BAR ── */
+    .stats-bar {
+      display: flex; gap: 16px; flex-wrap: wrap;
+      padding: 24px 40px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px 24px;
+      flex: 1; min-width: 140px;
+    }
+
+    .stat-card .value {
+      font-size: 32px; font-weight: 800;
+      line-height: 1;
+    }
+    .stat-card .label { font-size: 12px; color: var(--muted); margin-top: 6px; }
+    .stat-card.invest .value { color: var(--invest); }
+    .stat-card.skip   .value { color: var(--skip); }
+    .stat-card.total  .value { color: var(--accent); }
+
+    /* ── GRID ── */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 20px;
+      padding: 0 40px 40px;
+    }
+
+    /* ── CARD ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 22px;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .card:hover { transform: translateY(-3px); box-shadow: 0 12px 40px rgba(0,0,0,0.4); }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+    }
+    .card.invest::before { background: linear-gradient(90deg, var(--invest), #34d399); }
+    .card.skip::before   { background: linear-gradient(90deg, var(--skip), #f87171); }
+
+    /* badge */
+    .badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 11px; font-weight: 700;
+      padding: 4px 12px; border-radius: 20px;
+      letter-spacing: 0.5px; text-transform: uppercase;
+    }
+    .badge.invest { background: var(--invest-bg); color: var(--invest); }
+    .badge.skip   { background: var(--skip-bg);   color: var(--skip); }
+
+    .card-header {
+      display: flex; justify-content: space-between; align-items: flex-start;
+      margin-bottom: 16px; gap: 10px;
+    }
+
+    .ipo-name {
+      font-size: 15px; font-weight: 700;
+      line-height: 1.3; flex: 1;
+    }
+
+    /* probability ring */
+    .prob-ring {
+      position: relative; width: 56px; height: 56px; flex-shrink: 0;
+    }
+    .prob-ring svg { transform: rotate(-90deg); }
+    .prob-ring .bg-circle { stroke: var(--border); }
+    .prob-ring .fg-circle {
+      stroke-linecap: round;
+      transition: stroke-dashoffset 0.8s ease;
+    }
+    .prob-ring.invest .fg-circle { stroke: var(--invest); }
+    .prob-ring.skip   .fg-circle { stroke: var(--skip); }
+    .prob-text {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700; line-height: 1;
+    }
+    .prob-text small { font-size: 8px; color: var(--muted); margin-top: 1px; }
+
+    /* metrics grid */
+    .metrics {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 10px; margin-top: 4px;
+    }
+
+    .metric {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 10px; padding: 10px 12px;
+    }
+    .metric .m-label { font-size: 10px; color: var(--muted); margin-bottom: 4px; }
+    .metric .m-value { font-size: 16px; font-weight: 700; }
+    .metric .m-value.gmp { color: #f59e0b; }
+    .metric .m-value.sub { color: var(--accent); }
+
+    /* anchor pill */
+    .anchor-pill {
+      margin-top: 12px;
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 11px; color: var(--muted);
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      padding: 4px 10px; border-radius: 20px;
+    }
+
+    /* listing date */
+    .listing-info {
+      margin-top: 12px;
+      font-size: 11px; color: var(--muted);
+      display: flex; align-items: center; gap: 6px;
+    }
+
+    /* ── LOADING / EMPTY ── */
+    #loading, #empty {
+      text-align: center; padding: 80px 20px;
+      color: var(--muted); font-size: 15px;
+      grid-column: 1/-1;
+    }
+
+    .spinner {
+      width: 36px; height: 36px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 14px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 600px) {
+      header, .stats-bar, .grid { padding-left: 16px; padding-right: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">📈</div>
+    <div>
+      <h1>IPO Predictor</h1>
+      <p>Live ML-powered investment signals</p>
+    </div>
+  </div>
+  <div class="header-right">
+    <span id="last-updated">Fetching data…</span>
+    <button id="refresh-btn" onclick="loadData()">⟳ Refresh</button>
+  </div>
+</header>
+
+<div class="stats-bar">
+  <div class="stat-card total">
+    <div class="value" id="stat-total">—</div>
+    <div class="label">Total IPOs Today</div>
+  </div>
+  <div class="stat-card invest">
+    <div class="value" id="stat-invest">—</div>
+    <div class="label">INVEST Signals</div>
+  </div>
+  <div class="stat-card skip">
+    <div class="value" id="stat-skip">—</div>
+    <div class="label">SKIP Signals</div>
+  </div>
+</div>
+
+<div class="grid" id="grid">
+  <div id="loading"><div class="spinner"></div>Loading predictions…</div>
+</div>
+
+<script>
+  const circumference = 2 * Math.PI * 22; // r=22
+
+  function makeRing(prob, label) {
+    const cls = label === 'INVEST' ? 'invest' : 'skip';
+    const offset = circumference * (1 - prob);
+    return `
+      <div class="prob-ring ${cls}">
+        <svg width="56" height="56" viewBox="0 0 56 56">
+          <circle class="bg-circle" cx="28" cy="28" r="22" fill="none" stroke-width="4"/>
+          <circle class="fg-circle" cx="28" cy="28" r="22" fill="none" stroke-width="4"
+            stroke-dasharray="${circumference}"
+            stroke-dashoffset="${offset}"/>
+        </svg>
+        <div class="prob-text">
+          ${Math.round(prob * 100)}<small>%</small>
+        </div>
+      </div>`;
+  }
+
+  function makeCard(ipo) {
+    const label = ipo.decision_label || 'SKIP';
+    const cls   = label === 'INVEST' ? 'invest' : 'skip';
+    const prob  = ipo.predicted_probability ?? 0;
+    const gmp   = ipo.gmp_pct != null ? ipo.gmp_pct.toFixed(1) + '%' : '—';
+    const sub   = ipo.subscription_x != null ? ipo.subscription_x.toFixed(1) + 'x' : '—';
+    const price = ipo.ipo_price != null ? '₹' + ipo.ipo_price : '—';
+    const anchor = ipo.has_anchor ? '✅ Anchor investors' : '❌ No anchor';
+    const listing = ipo.listing_date ? `📅 Listing: ${ipo.listing_date}` : '';
+    const icon = label === 'INVEST' ? '▲' : '▼';
+
+    return `
+      <div class="card ${cls}">
+        <div class="card-header">
+          <div>
+            <div class="ipo-name">${ipo.ipo_name}</div>
+            <div style="margin-top:8px">
+              <span class="badge ${cls}">${icon} ${label}</span>
+            </div>
+          </div>
+          ${makeRing(prob, label)}
+        </div>
+        <div class="metrics">
+          <div class="metric">
+            <div class="m-label">GMP %</div>
+            <div class="m-value gmp">${gmp}</div>
+          </div>
+          <div class="metric">
+            <div class="m-label">Subscription</div>
+            <div class="m-value sub">${sub}</div>
+          </div>
+          <div class="metric">
+            <div class="m-label">IPO Price</div>
+            <div class="m-value">${price}</div>
+          </div>
+          <div class="metric">
+            <div class="m-label">GMP (₹)</div>
+            <div class="m-value">${ipo.gmp != null ? '₹' + ipo.gmp : '—'}</div>
+          </div>
+        </div>
+        <div class="anchor-pill">${anchor}</div>
+        ${listing ? `<div class="listing-info">${listing}</div>` : ''}
+      </div>`;
+  }
+
+  async function loadData() {
+    const grid = document.getElementById('grid');
+    grid.innerHTML = '<div id="loading"><div class="spinner"></div>Loading predictions…</div>';
+
+    try {
+      const res  = await fetch('/today');
+      const data = await res.json();
+
+      document.getElementById('stat-total').textContent  = data.length;
+      document.getElementById('stat-invest').textContent = data.filter(d => d.decision_label === 'INVEST').length;
+      document.getElementById('stat-skip').textContent   = data.filter(d => d.decision_label === 'SKIP').length;
+
+      const now = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+      document.getElementById('last-updated').textContent = `Updated at ${now}`;
+
+      if (!data.length) {
+        grid.innerHTML = '<div id="empty">😴 No predictions yet for today. Check back after the next pipeline run.</div>';
+        return;
+      }
+
+      grid.innerHTML = data.map(makeCard).join('');
+    } catch (e) {
+      grid.innerHTML = `<div id="empty">❌ Failed to load data: ${e.message}</div>`;
+    }
+  }
+
+  loadData();
+  setInterval(loadData, 5 * 60 * 1000); // auto-refresh every 5 min
+</script>
+
+</body>
+</html>
