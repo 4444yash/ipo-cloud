@@ -139,9 +139,16 @@ def upsert_ipos(ipo_rows):
         lot_size INTEGER,
         listing_date TEXT,
         has_anchor INTEGER,
-        scraped_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        scraped_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        is_predicted INTEGER DEFAULT 0
     )
     """)
+
+    # Add column to existing tables that were created before this change
+    try:
+        cur.execute("ALTER TABLE ipo_raw_data ADD COLUMN is_predicted INTEGER DEFAULT 0")
+    except Exception:
+        pass  # Column already exists, ignore
 
     updated_count = 0
     new_count = 0
@@ -155,7 +162,8 @@ def upsert_ipos(ipo_rows):
             cur.execute("""
             UPDATE ipo_raw_data
             SET gmp=?, subscription_x=?, lot_size=?, ipo_price=?, 
-                ipo_size_cr=?, listing_date=?, has_anchor=?, scraped_at=CURRENT_TIMESTAMP
+                ipo_size_cr=?, listing_date=?, has_anchor=?, scraped_at=CURRENT_TIMESTAMP,
+                is_predicted=0
             WHERE ipo_name=?
             """, (
                 ipo["gmp"], ipo["subscription_x"], ipo["lot_size"], ipo["ipo_price"],

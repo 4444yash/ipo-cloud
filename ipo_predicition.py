@@ -40,11 +40,11 @@ print("✅ Model loaded")
 
 conn = sqlite3.connect(DB_PATH)
 
-# Get data scraped in the last 24 hours
+# Only fetch rows that have NOT been predicted yet
 query = """
 SELECT *
 FROM ipo_raw_data
-WHERE scraped_at >= datetime('now', '-24 hours')
+WHERE is_predicted = 0
 """
 
 try:
@@ -56,10 +56,10 @@ except Exception as e:
 
 conn.close()
 
-print(f"✅ Rows scraped recently: {len(df)}")
+print(f"✅ New (unprocessed) rows found: {len(df)}")
 
 if df.empty:
-    print("⚠️ No IPO data found for today. Exiting.")
+    print("⚠️ No new IPO data to predict. Exiting.")
     exit()
 
 # ======================
@@ -135,11 +135,25 @@ try:
     if response.status_code == 200:
         print("✅ SUCCESS: Data successfully sent to the Website!")
         print("Server Response:", response.json())
+
+        # Mark these rows as predicted so they won't be re-sent next run
+        predicted_names = df["ipo_name"].tolist()
+        placeholders = ",".join(["?"] * len(predicted_names))
+        conn = sqlite3.connect(DB_PATH)
+        conn.execute(
+            f"UPDATE ipo_raw_data SET is_predicted = 1 WHERE ipo_name IN ({placeholders})",
+            predicted_names
+        )
+        conn.commit()
+        conn.close()
+        print(f"✅ Marked {len(predicted_names)} rows as predicted in DB.")
     else:
         print(f"❌ FAILED: API Error {response.status_code}")
         print(response.text)
+        print("⚠️ Rows NOT marked as predicted — will retry next run.")
 
 except Exception as e:
     print(f"❌ CONNECTION ERROR: Could not reach API. {e}")
     print(f"   -> Check if '{API_URL}' is correct.")
+    print("⚠️ Rows NOT marked as predicted — will retry next run.")
 
