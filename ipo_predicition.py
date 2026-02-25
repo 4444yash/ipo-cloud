@@ -130,8 +130,17 @@ print(f"\n📡 Sending {len(df)} predictions to API...")
 # (inf/NaN values are NOT valid JSON and will crash requests.post)
 df = df.replace([np.inf, -np.inf], np.nan).fillna(0)
 
-# Prepare payload
-payload = df.to_dict(orient="records")
+# Prepare payload — extra safety: scrub every value individually
+import math
+def _safe(v):
+    if isinstance(v, float) and (math.isnan(v) or math.isinf(v)):
+        return 0
+    return v
+
+payload = [
+    {k: _safe(v) for k, v in row.items()}
+    for row in df.to_dict(orient="records")
+]
 
 try:
     response = requests.post(API_URL, json=payload)
