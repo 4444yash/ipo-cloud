@@ -2,4 +2,4 @@
 nixPkgs = ["python3", "chromium", "chromedriver"]
 
 [phases.build]
-cmds = ["pip install -r requirements-scraper.txt"]
+cmds = ["pip install -r requirements-scraper.txt", "pip install -r requirements-web.txt"]

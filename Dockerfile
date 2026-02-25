@@ -18,3 +18,6 @@ COPY . .
 # 4. Install requirements for BOTH services (So this one file works for everything)
 RUN pip install -r requirements-scraper.txt
 RUN pip install -r requirements-web.txt
+
+# 5. Start the web service
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8080"]
