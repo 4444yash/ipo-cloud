@@ -44,9 +44,23 @@ def today_predictions():
     
     conn = sqlite3.connect(DB_PATH)
     try:
-        # Get the latest predictions
         df = pd.read_sql("SELECT * FROM ipo_predictions ORDER BY predicted_probability DESC", conn)
-        return df.to_dict(orient="records")
+
+        # Return only clean, user-facing fields
+        display_cols = [c for c in [
+            "ipo_name",
+            "listing_date",
+            "ipo_price",
+            "gmp",
+            "gmp_pct",
+            "subscription_x",
+            "has_anchor",
+            "predicted_probability",
+            "decision_label",
+            "predicted_at"
+        ] if c in df.columns]
+
+        return df[display_cols].to_dict(orient="records")
     except Exception as e:
         return {"error": str(e)}
     finally:
