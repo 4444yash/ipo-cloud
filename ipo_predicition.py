@@ -126,6 +126,10 @@ df["listing_date"] = df["listing_date"].astype(str)
 
 print(f"\n📡 Sending {len(df)} predictions to API...")
 
+# Sanitize: replace inf/-inf with NaN, then fill NaN with 0
+# (inf/NaN values are NOT valid JSON and will crash requests.post)
+df = df.replace([np.inf, -np.inf], np.nan).fillna(0)
+
 # Prepare payload
 payload = df.to_dict(orient="records")
 

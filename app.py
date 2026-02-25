@@ -36,8 +36,27 @@ def init_db():
 init_db()
 
 def clean_ipo_name(name: str) -> str:
-    """Strip trailing tranche suffixes like ' O', ' CT', ' C', ' SME O' etc."""
-    return re.sub(r'\s+(O|CT|C|SME O|SME C|SME CT)$', '', name.strip(), flags=re.IGNORECASE).strip()
+    """Strip exchange/market/status suffixes to get the base IPO name.
+    Handles: NSE, BSE, SME, O, C, CT, U, LT, CAllotted, Allotted and all combos.
+    """
+    name = name.strip()
+    # Strip exchange (NSE/BSE) + optional SME + optional status code
+    name = re.sub(
+        r'\s+(NSE|BSE)(\s+SME)?(\s+(O|C|CT|U|LT|CAllotted|Allotted))?$',
+        '', name, flags=re.IGNORECASE
+    )
+    # Strip any remaining standalone status codes
+    name = re.sub(
+        r'\s+(O|C|CT|U|LT|CAllotted|Allotted)$',
+        '', name, flags=re.IGNORECASE
+    )
+    return name.strip()
+
+def clean_listing_date(val) -> str:
+    """Take only the first line of the listing date field (strip scraped garbage)."""
+    if not val:
+        return val
+    return str(val).split('\n')[0].strip()
 
 @app.get("/", response_class=HTMLResponse)
 def dashboard(request: Request):
@@ -61,14 +80,18 @@ def today_predictions():
 
         df = df[display_cols].copy()
 
-        # Deduplicate: strip tranche suffixes and keep highest-probability row per IPO
+        # Clean dirty listing_date values (e.g. "25-Feb\nGMP: 0")
+        if "listing_date" in df.columns:
+            df["listing_date"] = df["listing_date"].apply(clean_listing_date)
+
+        # Deduplicate: compute base name, keep highest-probability row per IPO
         df["_base_name"] = df["ipo_name"].apply(clean_ipo_name)
         df = (
             df.sort_values("predicted_probability", ascending=False)
               .drop_duplicates(subset=["_base_name"])
               .drop(columns=["_base_name"])
         )
-        # Use cleaned name as display name
+        # Replace display name with cleaned version
         df["ipo_name"] = df["ipo_name"].apply(clean_ipo_name)
 
         return df.to_dict(orient="records")
