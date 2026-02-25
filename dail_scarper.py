@@ -20,31 +20,43 @@ DB_PATH = "/app/data/ipo_ml_withsme.db"
 URL = "https://www.investorgain.com/report/ipo-gmp-live/331/"
 
 def get_driver():
+    """
+    Creates a robust headless Chrome driver for Railway/Linux and Local environments.
+    """
     chrome_options = Options()
     chrome_options.add_argument("--headless=new")
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
     chrome_options.add_argument("--disable-gpu")
     chrome_options.add_argument("--window-size=1920,1080")
-    
-    # 1. FIND CHROMIUM BINARY AUTOMATICALLY
-    chromium_path = shutil.which("chromium")
-    if chromium_path:
-        chrome_options.binary_location = chromium_path
-    
-    # 2. FIND CHROMEDRIVER AUTOMATICALLY
-    driver_path = shutil.which("chromedriver")
-    
-    if driver_path:
-        print(f"✅ Found system driver at: {driver_path}")
-        service = Service(driver_path)
+    chrome_options.add_argument("--disable-blink-features=AutomationControlled")
+
+    # 1. Check for specific Railway/Linux binary locations
+    linux_chromium = "/usr/bin/chromium"
+    linux_chromedriver = "/usr/bin/chromedriver"
+
+    if os.path.exists(linux_chromium):
+        chrome_options.binary_location = linux_chromium
+        print(f"🔹 Using Linux Chromium at {linux_chromium}")
+
+    # 2. Set up the Service
+    if os.path.exists(linux_chromedriver):
+        print(f"✅ Using Linux ChromeDriver at {linux_chromedriver}")
+        service = Service(linux_chromedriver)
     else:
-        print("⚠️ System driver not found. Trying fallback...")
-        from webdriver_manager.chrome import ChromeDriverManager
-        service = Service(ChromeDriverManager().install())
+        # Fallback to automatic discovery or webdriver-manager
+        driver_path = shutil.which("chromedriver")
+        if driver_path:
+            print(f"✅ Found system driver at: {driver_path}")
+            service = Service(driver_path)
+        else:
+            print("⚠️ System chromedriver not found. Falling back to webdriver_manager.")
+            from webdriver_manager.chrome import ChromeDriverManager
+            service = Service(ChromeDriverManager().install())
 
     driver = webdriver.Chrome(service=service, options=chrome_options)
     return driver
+
 def clean_number(text):
     if not text:
         return 0.0
@@ -78,7 +90,7 @@ def scrape_daily_ipos():
                 continue
 
             ipo_name = cells[0].text.strip()
-            
+
             # --- Extract GMP ---
             gmp_text = cells[1].text
             gmp_match = re.search(r"₹\s*(\d+)", gmp_text)
@@ -89,10 +101,10 @@ def scrape_daily_ipos():
             ipo_price = clean_number(cells[4].text)
             ipo_size_cr = clean_number(cells[5].text)
             lot_size = clean_number(cells[6].text)
-            
+
             # Listing Date
             listing_date = cells[10].text.strip()
-            
+
             # Anchor Status (Check for tick mark)
             has_anchor = 1 if "✅" in cells[12].text else 0
 
@@ -139,16 +151,9 @@ def upsert_ipos(ipo_rows):
         lot_size INTEGER,
         listing_date TEXT,
         has_anchor INTEGER,
-        scraped_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        is_predicted INTEGER DEFAULT 0
+        scraped_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
     """)
-
-    # Add column to existing tables that were created before this change
-    try:
-        cur.execute("ALTER TABLE ipo_raw_data ADD COLUMN is_predicted INTEGER DEFAULT 0")
-    except Exception:
-        pass  # Column already exists, ignore
 
     updated_count = 0
     new_count = 0
@@ -162,8 +167,7 @@ def upsert_ipos(ipo_rows):
             cur.execute("""
             UPDATE ipo_raw_data
             SET gmp=?, subscription_x=?, lot_size=?, ipo_price=?, 
-                ipo_size_cr=?, listing_date=?, has_anchor=?, scraped_at=CURRENT_TIMESTAMP,
-                is_predicted=0
+                ipo_size_cr=?, listing_date=?, has_anchor=?, scraped_at=CURRENT_TIMESTAMP
             WHERE ipo_name=?
             """, (
                 ipo["gmp"], ipo["subscription_x"], ipo["lot_size"], ipo["ipo_price"],
