@@ -2,21 +2,30 @@ import sqlite3
 import numpy as np
 import pandas as pd
 import joblib
+import sys
+
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8')
+
 import requests  # <--- NEW: Needed to talk to the API
 import json
 import os
 from datetime import datetime
+from tensorflow.keras.models import load_model
 
 # ======================
 # CONFIG
 # ======================
 
 # Raw data source (Created by the scraper in the previous step)
-DB_PATH = "/app/data/ipo_ml_withsme.db"
-MODEL_PATH = "ipo_xgb_model.pkl"
+DB_PATH = "data/ipo_ml_withsme.db"
+MODEL_PATH = "ipo_dl_model.keras"
+SCALER_PATH = "scaler.pkl"
 
-# 👇 REPLACE THIS WITH YOUR ACTUAL RAILWAY APP URL
-API_URL = "https://ipo-cloud-production.up.railway.app/upload_predictions"
+# 👇 REPLACE THIS WITH YOUR ACTUAL RAILWAY APP URL OR USE ENVIRONMENT VARIABLES
+API_URL = os.getenv("API_URL", "http://localhost:8000/upload_predictions")
+
+NTFY_TOPIC = os.getenv("NTFY_TOPIC", "ipo_alerts_my_portfolio")  # Change this to whatever word you want!
 
 PROB_THRESHOLD = 0.70
 GMP_MIN = 5.0
@@ -26,12 +35,13 @@ GMP_AUTO_INVEST = 15.0
 # LOAD MODEL
 # ======================
 
-if not os.path.exists(MODEL_PATH):
-    print(f"❌ Error: Model file not found at {MODEL_PATH}")
+if not os.path.exists(MODEL_PATH) or not os.path.exists(SCALER_PATH):
+    print(f"❌ Error: Model or scaler file not found")
     exit()
 
-model = joblib.load(MODEL_PATH)
-print("✅ Model loaded")
+model = load_model(MODEL_PATH)
+scaler = joblib.load(SCALER_PATH)
+print("✅ Model and Scaler loaded")
 
 # ======================
 # LOAD RAW DATA (From Local Scraper)
@@ -39,11 +49,11 @@ print("✅ Model loaded")
 
 conn = sqlite3.connect(DB_PATH)
 
-# Get data scraped in the last 24 hours
+# Get data scraped in the last 24 hours that is NOT yet listed
 query = """
 SELECT *
 FROM ipo_raw_data
-WHERE scraped_at >= datetime('now', '-24 hours')
+WHERE scraped_at >= datetime('now', '-24 hours') AND is_listed = 0
 """
 
 try:
@@ -65,10 +75,23 @@ if df.empty:
 # PREPROCESSING & CLEANING
 # ======================
 
-# Remove listed IPOs
-listed_patterns = [r"L@", r"\(\d+\.?\d*%\)", r"Listed"]
+# Remove listed or closed IPOs that we should no longer track as 'Live'
+# Logic: We already filtered by is_listed = 0 in SQL, but we keep this as a double-safety
+listed_patterns = [
+    r"L@", r"\(-?\d+\.?\d*%\)", r"Listed", r"listed", 
+    r"Allotted", r"Basis", r"Allotment", r"allotted", r"basis"
+]
 pattern = "|".join(listed_patterns)
 df = df[~df["ipo_name"].str.contains(pattern, regex=True, na=False)]
+
+if df.empty:
+    print("⚠️ No ACTIVE IPOs detected (all are likely listed or closed). Clearing dashboard.")
+    try:
+        requests.post(API_URL, json=[])
+        print("✅ Dashboard cleared successfully.")
+    except Exception as e:
+        print(f"❌ Failed to clear dashboard: {e}")
+    exit()
 
 # Fix Column Names (Safety Check)
 if "subscription" in df.columns and "subscription_x" not in df.columns:
@@ -96,12 +119,13 @@ features = [
 ]
 
 X = df[features]
+X_scaled = scaler.transform(X)
 
 # ======================
 # MODEL PREDICTION
 # ======================
 
-df["predicted_probability"] = model.predict_proba(X)[:, 1]
+df["predicted_probability"] = model.predict(X_scaled).flatten()
 
 # Decision Logic
 df["final_decision"] = 0 
@@ -118,6 +142,34 @@ df["decision_label"] = df["final_decision"].map({1: "INVEST", 0: "SKIP"})
 # Convert timestamps to string for JSON serialization
 df["predicted_at"] = datetime.now().isoformat()
 df["listing_date"] = df["listing_date"].astype(str) 
+
+# ======================
+# PUSH NOTIFICATIONS (NTFY)
+# ======================
+print("\n🔔 Checking for new INVEST alerts...")
+ALERTS_FILE = "data/sent_alerts.txt"
+if not os.path.exists(ALERTS_FILE):
+    open(ALERTS_FILE, "w").close()
+
+with open(ALERTS_FILE, "r") as f:
+    sent_alerts = f.read().splitlines()
+
+new_alerts_sent = 0
+for _, row in df[df["decision_label"] == "INVEST"].iterrows():
+    ipo_name = row["ipo_name"]
+    if ipo_name not in sent_alerts:
+        msg = f"🟢 INVEST ALERT: {ipo_name}\nGMP: {row['gmp_pct']:.1f}%\nProb: {row['predicted_probability']:.0%}\nPrice: ₹{row['ipo_price']}"
+        try:
+            requests.post(f"https://ntfy.sh/{NTFY_TOPIC}", data=msg.encode('utf-8'))
+            with open(ALERTS_FILE, "a") as f:
+                f.write(ipo_name + "\n")
+            new_alerts_sent += 1
+            print(f"   -> Sent alert for {ipo_name}")
+        except Exception as e:
+            print(f"❌ Failed to send alert: {e}")
+
+if new_alerts_sent == 0:
+    print("   -> No new alerts to send today.")
 
 # ======================
 # SEND TO API (New Logic)

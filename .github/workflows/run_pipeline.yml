@@ -1,0 +1,39 @@
+name: Run IPO Data Pipeline
+
+on:
+  schedule:
+    # 🕒 Runs every 3 hours (At minute 0 of every 3rd hour)
+    - cron: '0 */3 * * *'
+  workflow_dispatch: # 🚀 Allows manual execution from the GitHub Actions UI
+
+jobs:
+  run-pipeline:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+          cache: 'pip' # Speeds up subsequent runs by caching pip packages
+
+      - name: 🌐 Install Chrome (Google-Chrome is pre-installed on ubuntu-latest)
+        run: |
+          google-chrome --version
+
+      - name: 📦 Install Dependencies
+        run: |
+          # We use the scraper requirements file for running the pipeline
+          pip install -r requirements-scraper.txt
+
+      - name: 🚀 Run Orchestrator Pipeline
+        env:
+          # 👇 Set the production API URL here or configure it in GitHub Secrets!
+          # We highly recommend adding a GitHub Secret called API_URL with your production domain
+          API_URL: ${{ secrets.API_URL || 'https://your-production-app.up.railway.app/upload_predictions' }}
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC || 'ipo_alerts_my_portfolio' }}
+        run: |
+          python run_pipeline.py

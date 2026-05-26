@@ -3,6 +3,12 @@ import re
 import os
 import shutil
 from datetime import datetime
+import sys
+import time
+
+# Fix for Windows Unicode printing
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8')
 
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
@@ -15,131 +21,180 @@ from selenium.webdriver.support import expected_conditions as EC
 # CONFIGURATION
 # ===========================
 
-# CRITICAL: Must be the absolute path to the shared volume
-DB_PATH = "/app/data/ipo_ml_withsme.db"
+DB_PATH = "data/ipo_ml_withsme.db"
 URL = "https://www.investorgain.com/report/ipo-gmp-live/331/"
 
 def get_driver():
-    """
-    Creates a robust headless Chrome driver for Railway/Linux and Local environments.
-    """
+    print("[*] Initializing Chrome Driver (Robust Mode)...")
     chrome_options = Options()
-    chrome_options.add_argument("--headless=new")
+    chrome_options.add_argument("--headless")
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
     chrome_options.add_argument("--disable-gpu")
     chrome_options.add_argument("--window-size=1920,1080")
     chrome_options.add_argument("--disable-blink-features=AutomationControlled")
+    chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36")
 
-    # 1. Check for specific Railway/Linux binary locations
-    linux_chromium = "/usr/bin/chromium"
-    linux_chromedriver = "/usr/bin/chromedriver"
+    # 👇 Support environment variables for headless cloud environments
+    chrome_bin = os.getenv("CHROME_BIN")
+    if chrome_bin:
+        chrome_options.binary_location = chrome_bin
+        print(f"[*] Using Chrome Binary: {chrome_bin}")
 
-    if os.path.exists(linux_chromium):
-        chrome_options.binary_location = linux_chromium
-        print(f"🔹 Using Linux Chromium at {linux_chromium}")
+    chromedriver_path = os.getenv("CHROMEDRIVER_PATH")
+    if chromedriver_path:
+        print(f"[*] Using ChromeDriver: {chromedriver_path}")
+        service = Service(executable_path=chromedriver_path)
+        try:
+            return webdriver.Chrome(service=service, options=chrome_options)
+        except Exception as e:
+            print(f"[!] Direct ChromeDriver initialization failed, falling back to manager. Error: {e}")
 
-    # 2. Set up the Service
-    if os.path.exists(linux_chromedriver):
-        print(f"✅ Using Linux ChromeDriver at {linux_chromedriver}")
-        service = Service(linux_chromedriver)
-    else:
-        # Fallback to automatic discovery or webdriver-manager
-        driver_path = shutil.which("chromedriver")
-        if driver_path:
-            print(f"✅ Found system driver at: {driver_path}")
-            service = Service(driver_path)
-        else:
-            print("⚠️ System chromedriver not found. Falling back to webdriver_manager.")
-            from webdriver_manager.chrome import ChromeDriverManager
-            service = Service(ChromeDriverManager().install())
-
-    driver = webdriver.Chrome(service=service, options=chrome_options)
-    return driver
+    try:
+        from webdriver_manager.chrome import ChromeDriverManager
+        driver_path = ChromeDriverManager().install()
+        service = Service(executable_path=driver_path)
+        driver = webdriver.Chrome(service=service, options=chrome_options)
+        return driver
+    except Exception as e:
+        print(f"[!] Driver Initialization Failed: {e}")
+        raise
 
 def clean_number(text):
     if not text:
         return 0.0
-    text = text.replace(",", "").strip()
-    # Handle cases like "15.5%" or "Rs. 100"
-    text = re.sub(r"[^\d.]", "", text)
-    try:
-        return float(text)
-    except ValueError:
-        return 0.0
+    text = str(text).split("\n")[0].split("(")[0].strip()
+    text = text.replace(",", "").replace("₹", "").replace("Rs.", "").strip()
+    match = re.search(r"(\d+\.?\d*)", text)
+    if match:
+        try:
+            return float(match.group(1))
+        except ValueError:
+            return 0.0
+    return 0.0
 
 def scrape_daily_ipos():
-    driver = get_driver()
+    driver = None
     ipo_rows = []
 
     try:
-        print(f"🚀 Connecting to {URL}...")
+        driver = get_driver()
+        print(f"[*] Connecting to {URL}...")
         driver.get(URL)
 
-        wait = WebDriverWait(driver, 20)
-        # Wait for the table body to load
-        wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "#report_table tbody tr")))
+        wait = WebDriverWait(driver, 30)
+        # Use a more generic selector for the table rows
+        print("[*] Waiting for table content...")
+        wait.until(EC.presence_of_element_located((By.ID, "reportTable")))
+        
+        # Give it a tiny bit of extra time for rows to render
+        time.sleep(2)
 
-        rows = driver.find_elements(By.CSS_SELECTOR, "#report_table tbody tr")
-        print(f"🔹 Rows detected: {len(rows)}")
+        # Get all rows from the table
+        rows = driver.find_elements(By.CSS_SELECTOR, "#reportTable tr")
+        print(f"[*] Total rows found (including headers): {len(rows)}")
 
-        for row in rows:
+        for i, row in enumerate(rows):
             cells = row.find_elements(By.TAG_NAME, "td")
-
-            if len(cells) < 13:
+            
+            # Skip header rows or empty rows
+            if len(cells) < 10:
                 continue
 
-            ipo_name = cells[0].text.strip()
+            ipo_name_full = cells[0].text.strip()
+            if not ipo_name_full or "IPO Name" in ipo_name_full:
+                continue
+                
+            try:
+                name_element = cells[0].find_element(By.TAG_NAME, "a")
+                clean_name = name_element.text.strip()
+            except:
+                clean_name = ipo_name_full.split("\n")[0].strip()
+            
+            if not clean_name:
+                continue
 
-            # --- Extract GMP ---
+            # GMP Parsing
             gmp_text = cells[1].text
             gmp_match = re.search(r"₹\s*(\d+)", gmp_text)
             gmp = float(gmp_match.group(1)) if gmp_match else 0.0
 
-            # --- Extract Other Fields ---
+            # Subscription, Price, Size, Lot
             subscription_x = clean_number(cells[3].text)
             ipo_price = clean_number(cells[4].text)
             ipo_size_cr = clean_number(cells[5].text)
             lot_size = clean_number(cells[6].text)
 
+            # Listing Price and Status
+            listing_price = None
+            is_listed = 0
+            lp_match = re.search(r"L@(\d+\.?\d*)", ipo_name_full)
+            if lp_match:
+                listing_price = float(lp_match.group(1))
+                is_listed = 1
+            
+            if any(p in ipo_name_full for p in ["Listed ", "listed "]):
+                is_listed = 1
+
             # Listing Date
-            listing_date = cells[10].text.strip()
+            listing_date = ""
+            # Try columns 10, then 7, then 8
+            for idx in [10, 7, 8]:
+                if len(cells) > idx and cells[idx].text.strip():
+                    listing_date = cells[idx].text.split("\n")[0].strip()
+                    if listing_date: break
+            
+            # Anchor Status
+            has_anchor = 0
+            if len(cells) > 12:
+                cell_text = cells[12].text
+                cell_html = cells[12].get_attribute('innerHTML')
+                if "✅" in cell_text or "✅" in cell_html:
+                    has_anchor = 1
 
-            # Anchor Status (Check for tick mark)
-            has_anchor = 1 if "✅" in cells[12].text else 0
+            ipo_rows.append({
+                "ipo_name": clean_name,
+                "gmp": gmp,
+                "subscription_x": subscription_x,
+                "ipo_price": ipo_price,
+                "ipo_size_cr": ipo_size_cr,
+                "lot_size": int(lot_size),
+                "listing_date": listing_date,
+                "has_anchor": has_anchor,
+                "listing_price": listing_price,
+                "is_listed": is_listed
+            })
 
-            # Only add valid rows
-            if ipo_name:
-                ipo_rows.append({
-                    "ipo_name": ipo_name,
-                    "gmp": gmp,
-                    "subscription_x": subscription_x,
-                    "ipo_price": ipo_price,
-                    "ipo_size_cr": ipo_size_cr,
-                    "lot_size": int(lot_size),
-                    "listing_date": listing_date,
-                    "has_anchor": has_anchor
-                })
+        print(f"[*] Successfully parsed {len(ipo_rows)} IPOs.")
 
     except Exception as e:
-        print(f"❌ Error during scraping: {e}")
+        print(f"[ERR] Error during scraping: {e}")
+        import traceback
+        traceback.print_exc()
+        if driver:
+            try:
+                driver.quit()
+            except:
+                pass
+        sys.exit(1)
     finally:
-        driver.quit()
+        if driver:
+            try:
+                driver.quit()
+            except:
+                pass
 
     return ipo_rows
 
 def upsert_ipos(ipo_rows):
     if not ipo_rows:
-        print("⚠️ No data to update.")
+        print("[WARN] No data to update.")
         return
 
-    # Ensure directory exists (just in case)
     os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
-
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
 
-    # Create table if it doesn't exist (Safety check for fresh volume)
     cur.execute("""
     CREATE TABLE IF NOT EXISTS ipo_raw_data (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -150,48 +205,56 @@ def upsert_ipos(ipo_rows):
         ipo_size_cr REAL,
         lot_size INTEGER,
         listing_date TEXT,
-        has_anchor INTEGER,
-        scraped_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        has_anchor INTEGER DEFAULT 0,
+        scraped_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        listing_price REAL,
+        is_listed INTEGER DEFAULT 0
     )
     """)
-
-    updated_count = 0
-    new_count = 0
+    
+    # Column safety check
+    cols = [row[1] for row in cur.execute("PRAGMA table_info(ipo_raw_data)").fetchall()]
+    if "listing_price" not in cols:
+        cur.execute("ALTER TABLE ipo_raw_data ADD COLUMN listing_price REAL")
+    if "is_listed" not in cols:
+        cur.execute("ALTER TABLE ipo_raw_data ADD COLUMN is_listed INTEGER DEFAULT 0")
+    if "has_anchor" not in cols:
+        cur.execute("ALTER TABLE ipo_raw_data ADD COLUMN has_anchor INTEGER DEFAULT 0")
 
     for ipo in ipo_rows:
-        # Check if IPO exists
-        cur.execute("SELECT id FROM ipo_raw_data WHERE ipo_name = ?", (ipo["ipo_name"],))
-        exists = cur.fetchone()
+        cur.execute("SELECT gmp, listing_price, is_listed FROM ipo_raw_data WHERE ipo_name = ?", (ipo["ipo_name"],))
+        old_data = cur.fetchone()
 
-        if exists:
+        if old_data:
+            old_gmp, old_listing_price, old_is_listed = old_data
+            final_gmp = ipo["gmp"] if (ipo["gmp"] > 0 or not old_gmp) else old_gmp
+            final_lp = ipo["listing_price"] if (ipo["listing_price"] or not old_listing_price) else old_listing_price
+            final_is_listed = max(ipo["is_listed"], old_is_listed)
+
             cur.execute("""
             UPDATE ipo_raw_data
             SET gmp=?, subscription_x=?, lot_size=?, ipo_price=?, 
-                ipo_size_cr=?, listing_date=?, has_anchor=?, scraped_at=CURRENT_TIMESTAMP
+                ipo_size_cr=?, listing_date=?, has_anchor=?, listing_price=?, is_listed=?, scraped_at=CURRENT_TIMESTAMP
             WHERE ipo_name=?
             """, (
-                ipo["gmp"], ipo["subscription_x"], ipo["lot_size"], ipo["ipo_price"],
-                ipo["ipo_size_cr"], ipo["listing_date"], ipo["has_anchor"], ipo["ipo_name"]
+                final_gmp, ipo["subscription_x"], ipo["lot_size"], ipo["ipo_price"],
+                ipo["ipo_size_cr"], ipo["listing_date"], ipo["has_anchor"], final_lp, final_is_listed, ipo["ipo_name"]
             ))
-            updated_count += 1
         else:
             cur.execute("""
-            INSERT INTO ipo_raw_data (
-                ipo_name, gmp, subscription_x, ipo_price, ipo_size_cr, 
-                lot_size, listing_date, has_anchor, scraped_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-            """, (
-                ipo["ipo_name"], ipo["gmp"], ipo["subscription_x"], ipo["ipo_price"],
-                ipo["ipo_size_cr"], ipo["lot_size"], ipo["listing_date"], ipo["has_anchor"]
-            ))
-            new_count += 1
+            INSERT INTO ipo_raw_data (ipo_name, gmp, subscription_x, ipo_price, ipo_size_cr, lot_size, listing_date, listing_price, is_listed, has_anchor, scraped_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+            """, (ipo["ipo_name"], ipo["gmp"], ipo["subscription_x"], ipo["ipo_price"], ipo["ipo_size_cr"], ipo["lot_size"], ipo["ipo_date"] if "ipo_date" in ipo else ipo["listing_date"], ipo["listing_price"], ipo["is_listed"], ipo["has_anchor"]))
 
     conn.commit()
     conn.close()
-    print(f"✅ Database Updated: {new_count} New | {updated_count} Updated")
+    print(f"[OK] Database Updated.")
 
 if __name__ == "__main__":
-    print(f"📅 Starting Daily Scrape at {datetime.now()}")
-    ipos = scrape_daily_ipos()
-    upsert_ipos(ipos)
-    print("✨ Scrape & Update Complete.")
+    try:
+        ipos = scrape_daily_ipos()
+        upsert_ipos(ipos)
+        print("[*] Scrape Complete.")
+    except Exception as e:
+        print(f"[ERR] Scraper Failed: {e}")
+        sys.exit(1)

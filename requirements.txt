@@ -3,7 +3,7 @@ uvicorn
 pandas
 numpy
 scikit-learn
-xgboost
+tensorflow
 joblib
 beautifulsoup4
 requests
@@ -11,3 +11,4 @@ selenium
 webdriver-manager
 python-multipart
 jinja2
+yfinance
