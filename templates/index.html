@@ -215,6 +215,20 @@
       color: var(--skip);
     }
 
+    .badge.sme {
+      background: rgba(168, 85, 247, 0.12);
+      color: #c084fc;
+      border: 1px solid rgba(168, 85, 247, 0.25);
+      box-shadow: 0 0 10px rgba(168, 85, 247, 0.1);
+    }
+
+    .badge.mainboard {
+      background: rgba(59, 130, 246, 0.12);
+      color: #60a5fa;
+      border: 1px solid rgba(59, 130, 246, 0.25);
+      box-shadow: 0 0 10px rgba(59, 130, 246, 0.1);
+    }
+
     .card-header {
       display: flex;
       justify-content: space-between;
@@ -832,7 +846,16 @@
       const sub = ipo.subscription_x != null ? ipo.subscription_x.toFixed(1) + 'x' : '—';
       const price = ipo.ipo_price != null ? '₹' + ipo.ipo_price : '—';
       const anchor = ipo.has_anchor ? '✅ Anchor investors' : '❌ No anchor';
+      
+      // 👇 Dynamic open/close/listing dates extraction
+      const open = ipo.open_date ? `🟢 Open: ${ipo.open_date}` : '';
+      const close = ipo.close_date ? `🔴 Close: ${ipo.close_date}` : '';
       const listing = ipo.listing_date ? `📅 Listing: ${ipo.listing_date}` : '';
+      
+      // 👇 Dynamic IPO Type glowing tag
+      const type = ipo.ipo_type || 'Mainboard';
+      const typeCls = type === 'SME' ? 'sme' : 'mainboard';
+
       const icon = isLocked ? '🔒' : (label === 'INVEST' ? '▲' : '▼');
       const badgeLabel = isLocked ? 'LOCKED (AI)' : label;
 
@@ -841,8 +864,9 @@
         <div class="card-header">
           <div>
             <div class="ipo-name">${ipo.ipo_name}</div>
-            <div style="margin-top:8px">
+            <div style="margin-top:8px; display: flex; gap: 8px; flex-wrap: wrap;">
               <span class="badge ${isLocked ? 'skip' : cls}">${icon} ${badgeLabel}</span>
+              <span class="badge ${typeCls}">${type}</span>
             </div>
           </div>
           ${makeRing(prob, label)}
@@ -866,7 +890,11 @@
           </div>
         </div>
         <div class="anchor-pill">${anchor}</div>
-        ${listing ? `<div class="listing-info">${listing}</div>` : ''}
+        <div class="listing-info" style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; line-height: 1.4;">
+          ${open ? `<span>${open}</span>` : ''}
+          ${close ? `<span>${close}</span>` : ''}
+          ${listing ? `<span>${listing}</span>` : ''}
+        </div>
       </div>`;
     }
 

@@ -30,7 +30,10 @@ def init_db():
             decision_label TEXT,
             predicted_at TEXT,
             listing_date TEXT,
-            subscription_x REAL
+            subscription_x REAL,
+            open_date TEXT,
+            close_date TEXT,
+            ipo_type TEXT
         )
     """)
     conn.execute("""

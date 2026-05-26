@@ -144,6 +144,16 @@ def scrape_daily_ipos():
                     listing_date = cells[idx].text.split("\n")[0].strip()
                     if listing_date: break
             
+            # 👇 Parse Open & Close Dates
+            open_date = cells[7].text.split("\n")[0].strip() if len(cells) > 7 else ""
+            close_date = cells[8].text.split("\n")[0].strip() if len(cells) > 8 else ""
+
+            # 👇 Determine IPO Type (SME vs Mainboard)
+            if lot_size >= 100 or "SME" in clean_name.upper():
+                ipo_type = "SME"
+            else:
+                ipo_type = "Mainboard"
+
             # Anchor Status
             has_anchor = 0
             if len(cells) > 12:
@@ -162,7 +172,10 @@ def scrape_daily_ipos():
                 "listing_date": listing_date,
                 "has_anchor": has_anchor,
                 "listing_price": listing_price,
-                "is_listed": is_listed
+                "is_listed": is_listed,
+                "open_date": open_date,
+                "close_date": close_date,
+                "ipo_type": ipo_type
             })
 
         print(f"[*] Successfully parsed {len(ipo_rows)} IPOs.")
@@ -208,18 +221,20 @@ def upsert_ipos(ipo_rows):
         has_anchor INTEGER DEFAULT 0,
         scraped_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         listing_price REAL,
-        is_listed INTEGER DEFAULT 0
+        is_listed INTEGER DEFAULT 0,
+        open_date TEXT,
+        close_date TEXT,
+        ipo_type TEXT
     )
     """)
     
-    # Column safety check
+    # 👇 Dynamic Column Migration (So existing DB upgrades instantly!)
     cols = [row[1] for row in cur.execute("PRAGMA table_info(ipo_raw_data)").fetchall()]
-    if "listing_price" not in cols:
-        cur.execute("ALTER TABLE ipo_raw_data ADD COLUMN listing_price REAL")
-    if "is_listed" not in cols:
-        cur.execute("ALTER TABLE ipo_raw_data ADD COLUMN is_listed INTEGER DEFAULT 0")
-    if "has_anchor" not in cols:
-        cur.execute("ALTER TABLE ipo_raw_data ADD COLUMN has_anchor INTEGER DEFAULT 0")
+    for col_name in ["listing_price", "is_listed", "has_anchor", "open_date", "close_date", "ipo_type"]:
+        if col_name not in cols:
+            col_type = "INTEGER DEFAULT 0" if col_name in ["is_listed", "has_anchor"] else "TEXT"
+            col_type = "REAL" if col_name == "listing_price" else col_type
+            cur.execute(f"ALTER TABLE ipo_raw_data ADD COLUMN {col_name} {col_type}")
 
     for ipo in ipo_rows:
         cur.execute("SELECT gmp, listing_price, is_listed FROM ipo_raw_data WHERE ipo_name = ?", (ipo["ipo_name"],))
@@ -234,17 +249,19 @@ def upsert_ipos(ipo_rows):
             cur.execute("""
             UPDATE ipo_raw_data
             SET gmp=?, subscription_x=?, lot_size=?, ipo_price=?, 
-                ipo_size_cr=?, listing_date=?, has_anchor=?, listing_price=?, is_listed=?, scraped_at=CURRENT_TIMESTAMP
+                ipo_size_cr=?, listing_date=?, has_anchor=?, listing_price=?, is_listed=?, scraped_at=CURRENT_TIMESTAMP,
+                open_date=?, close_date=?, ipo_type=?
             WHERE ipo_name=?
             """, (
                 final_gmp, ipo["subscription_x"], ipo["lot_size"], ipo["ipo_price"],
-                ipo["ipo_size_cr"], ipo["listing_date"], ipo["has_anchor"], final_lp, final_is_listed, ipo["ipo_name"]
+                ipo["ipo_size_cr"], ipo["listing_date"], ipo["has_anchor"], final_lp, final_is_listed,
+                ipo["open_date"], ipo["close_date"], ipo["ipo_type"], ipo["ipo_name"]
             ))
         else:
             cur.execute("""
-            INSERT INTO ipo_raw_data (ipo_name, gmp, subscription_x, ipo_price, ipo_size_cr, lot_size, listing_date, listing_price, is_listed, has_anchor, scraped_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-            """, (ipo["ipo_name"], ipo["gmp"], ipo["subscription_x"], ipo["ipo_price"], ipo["ipo_size_cr"], ipo["lot_size"], ipo["ipo_date"] if "ipo_date" in ipo else ipo["listing_date"], ipo["listing_price"], ipo["is_listed"], ipo["has_anchor"]))
+            INSERT INTO ipo_raw_data (ipo_name, gmp, subscription_x, ipo_price, ipo_size_cr, lot_size, listing_date, listing_price, is_listed, has_anchor, open_date, close_date, ipo_type, scraped_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+            """, (ipo["ipo_name"], ipo["gmp"], ipo["subscription_x"], ipo["ipo_price"], ipo["ipo_size_cr"], ipo["lot_size"], ipo["ipo_date"] if "ipo_date" in ipo else ipo["listing_date"], ipo["listing_price"], ipo["is_listed"], ipo["has_anchor"], ipo["open_date"], ipo["close_date"], ipo["ipo_type"]))
 
     conn.commit()
     conn.close()
