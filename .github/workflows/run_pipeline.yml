@@ -18,7 +18,8 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: '3.9'
-          cache: 'pip' # Speeds up subsequent runs by caching pip packages
+          cache: 'pip'
+          cache-dependency-path: 'requirements-scraper.txt'
 
       - name: 🌐 Install Chrome (Google-Chrome is pre-installed on ubuntu-latest)
         run: |
