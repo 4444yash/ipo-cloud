@@ -85,6 +85,7 @@ def today_predictions(key: str = None):
     try:
         # Get the latest predictions
         df = pd.read_sql("SELECT * FROM ipo_predictions ORDER BY predicted_probability DESC", conn)
+        df = df.fillna("") # 👇 Clean NaN/None values for safe JSON serialization
         
         # 👇 NEW: If not a valid VIP, redact key ML signal columns for Freemium paywall
         if not is_vip and not df.empty:
