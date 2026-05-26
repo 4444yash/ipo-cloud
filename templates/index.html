@@ -535,6 +535,149 @@
       color: var(--skip);
     }
 
+    /* ── PAYWALL BANNER ── */
+    .paywall-section {
+      padding: 0 40px 24px;
+    }
+
+    .paywall-card {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(139, 92, 246, 0.12) 100%);
+      border: 1px dashed var(--accent);
+      border-radius: 20px;
+      padding: 24px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 20px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 8px 32px rgba(99, 102, 241, 0.06);
+    }
+
+    .paywall-info {
+      flex: 1;
+      min-width: 280px;
+    }
+
+    .paywall-title {
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 6px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .paywall-desc {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .paywall-action {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .upi-badge {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border);
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .key-input-group {
+      display: flex;
+      gap: 8px;
+    }
+
+    .key-input {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      outline: none;
+      width: 180px;
+      transition: border-color 0.2s;
+    }
+
+    .key-input:focus {
+      border-color: var(--accent);
+    }
+
+    .key-btn {
+      background: linear-gradient(135deg, var(--accent), #8b5cf6);
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    .key-btn:hover {
+      opacity: 0.9;
+    }
+
+    /* VIP ACTIVE HEADER BADGE */
+    .vip-status-badge {
+      background: rgba(16, 185, 129, 0.12);
+      color: var(--invest);
+      border: 1px solid var(--invest);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* LOCKED BLUR ACTIONS */
+    .card.locked {
+      border-color: var(--border) !important;
+    }
+
+    .card.locked::before {
+      background: var(--border) !important;
+    }
+
+    .card.locked .badge {
+      background: rgba(255, 255, 255, 0.04) !important;
+      color: var(--muted) !important;
+      border: 1px solid var(--border) !important;
+    }
+    
+    .card.locked .prob-ring svg {
+      filter: blur(5px);
+      opacity: 0.25;
+    }
+
+    .card.locked .prob-text {
+      font-size: 0px !important;
+      color: transparent;
+    }
+
+    .card.locked .prob-text::before {
+      content: '🔒';
+      font-size: 18px;
+    }
+
     /* ── RESPONSIVE ── */
     @media (max-width: 600px) {
 
@@ -571,6 +714,8 @@
       </div>
     </div>
     <div class="header-right">
+      <!-- 👇 VIP Active badge -->
+      <span class="vip-status-badge" id="vip-header-badge" style="display: none;">👑 VIP Active</span>
       <span id="last-updated">Fetching data…</span>
       <button id="refresh-btn" onclick="triggerSync()">⚡ Sync Latest Data</button>
     </div>
@@ -626,6 +771,23 @@
     </div>
   </div>
 
+  <!-- ── PAYWALL BANNER ── -->
+  <div class="paywall-section" id="paywall-banner" style="display: none;">
+    <div class="paywall-card">
+      <div class="paywall-info">
+        <div class="paywall-title">🔒 Unlock Neural Network Predictions</div>
+        <div class="paywall-desc">Get instant access to AI Investment Probability Ratings and exact skip/invest decision tags. Send <strong>₹299/month</strong> to our UPI ID, then enter your activated access key!</div>
+      </div>
+      <div class="paywall-action">
+        <div class="upi-badge">📲 GPay / UPI ID: <strong id="upi-display">{{ upi_id }}</strong></div>
+        <div class="key-input-group">
+          <input type="text" class="key-input" id="key-input-field" placeholder="Enter Access Key..." onkeydown="if(event.key === 'Enter') activateVIPKey()" />
+          <button class="key-btn" onclick="activateVIPKey()">Unlock</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="grid" id="grid">
     <div id="loading">
       <div class="spinner"></div>Loading predictions…
@@ -663,14 +825,16 @@
 
     function makeCard(ipo) {
       const label = ipo.decision_label || 'SKIP';
-      const cls = label === 'INVEST' ? 'invest' : 'skip';
+      const isLocked = label === 'LOCKED';
+      const cls = isLocked ? 'locked' : (label === 'INVEST' ? 'invest' : 'skip');
       const prob = ipo.predicted_probability ?? 0;
       const gmp = ipo.gmp_pct != null ? ipo.gmp_pct.toFixed(1) + '%' : '—';
       const sub = ipo.subscription_x != null ? ipo.subscription_x.toFixed(1) + 'x' : '—';
       const price = ipo.ipo_price != null ? '₹' + ipo.ipo_price : '—';
       const anchor = ipo.has_anchor ? '✅ Anchor investors' : '❌ No anchor';
       const listing = ipo.listing_date ? `📅 Listing: ${ipo.listing_date}` : '';
-      const icon = label === 'INVEST' ? '▲' : '▼';
+      const icon = isLocked ? '🔒' : (label === 'INVEST' ? '▲' : '▼');
+      const badgeLabel = isLocked ? 'LOCKED (AI)' : label;
 
       return `
       <div class="card ${cls}">
@@ -678,7 +842,7 @@
           <div>
             <div class="ipo-name">${ipo.ipo_name}</div>
             <div style="margin-top:8px">
-              <span class="badge ${cls}">${icon} ${label}</span>
+              <span class="badge ${isLocked ? 'skip' : cls}">${icon} ${badgeLabel}</span>
             </div>
           </div>
           ${makeRing(prob, label)}
@@ -733,13 +897,49 @@
       }
     }
 
+    function activateVIPKey() {
+      const field = document.getElementById('key-input-field');
+      const key = field.value.trim();
+      if (!key) {
+        alert("⚠️ Please enter an Access Key!");
+        return;
+      }
+      localStorage.setItem('vip_key', key);
+      loadData();
+    }
+
     async function loadData() {
       const grid = document.getElementById('grid');
       grid.innerHTML = '<div id="loading"><div class="spinner"></div>Loading predictions…</div>';
 
       try {
-        const res = await fetch('/today');
+        const vipKey = localStorage.getItem('vip_key') || '';
+        const res = await fetch('/today?key=' + encodeURIComponent(vipKey));
         const data = await res.json();
+
+        // 👇 Dynamic Paywall Banner & VIP status handling
+        const isLocked = data.some(d => d.decision_label === 'LOCKED');
+        const paywallBanner = document.getElementById('paywall-banner');
+        const vipHeaderBadge = document.getElementById('vip-header-badge');
+
+        if (isLocked) {
+          paywallBanner.style.display = 'block';
+          vipHeaderBadge.style.display = 'none';
+          if (vipKey) {
+            // Key was entered but backend still returned LOCKED -> Key is invalid!
+            alert("❌ Invalid or expired VIP Access Key. Please contact support or double check your entry.");
+            localStorage.removeItem('vip_key');
+            document.getElementById('key-input-field').value = '';
+          }
+        } else {
+          paywallBanner.style.display = 'none';
+          if (vipKey) {
+            vipHeaderBadge.style.display = 'inline-flex';
+            vipHeaderBadge.title = `Access Key: ${vipKey}`;
+          } else {
+            vipHeaderBadge.style.display = 'none';
+          }
+        }
 
         document.getElementById('stat-total').textContent = data.length;
         document.getElementById('stat-invest').textContent = data.filter(d => d.decision_label === 'INVEST').length;
