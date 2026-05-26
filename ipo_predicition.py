@@ -19,7 +19,7 @@ from tensorflow.keras.models import load_model
 
 # Raw data source (Created by the scraper in the previous step)
 DB_PATH = "data/ipo_ml_withsme.db"
-MODEL_PATH = "ipo_dl_model.keras"
+MODEL_PATH = "ipo_dl_model.h5"
 SCALER_PATH = "scaler.pkl"
 
 # 👇 REPLACE THIS WITH YOUR ACTUAL RAILWAY APP URL OR USE ENVIRONMENT VARIABLES
@@ -39,31 +39,6 @@ if not os.path.exists(MODEL_PATH) or not os.path.exists(SCALER_PATH):
     print(f"❌ Error: Model or scaler file not found")
     exit()
 
-# 👇 Cross-platform Keras ZIP compatibility patch (Windows to Linux)
-def _patch_keras_slashes(filepath):
-    import zipfile
-    import shutil
-    if not zipfile.is_zipfile(filepath):
-        return
-    need_fix = False
-    with zipfile.ZipFile(filepath, 'r') as zf:
-        for name in zf.namelist():
-            if '\\' in name:
-                need_fix = True
-                break
-    if need_fix:
-        print(f"[!] Windows path separators detected in model file. Patching to Linux forward slashes...")
-        temp_path = filepath + ".tmp"
-        with zipfile.ZipFile(filepath, 'r') as z_in:
-            with zipfile.ZipFile(temp_path, 'w', compression=zipfile.ZIP_DEFLATED) as z_out:
-                for item in z_in.infolist():
-                    data = z_in.read(item.filename)
-                    new_name = item.filename.replace('\\', '/')
-                    z_out.writestr(new_name, data)
-        shutil.move(temp_path, filepath)
-        print("[✅] Model file zip slashes patched successfully.")
-
-_patch_keras_slashes(MODEL_PATH)
 
 model = load_model(MODEL_PATH)
 scaler = joblib.load(SCALER_PATH)
