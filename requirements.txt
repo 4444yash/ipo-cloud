@@ -12,3 +12,4 @@ webdriver-manager
 python-multipart
 jinja2
 yfinance
+h5py==3.11.0
