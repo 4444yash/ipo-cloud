@@ -3,7 +3,7 @@ name: Run IPO Data Pipeline
 on:
   schedule:
     # 🕒 Runs every 3 hours (At minute 0 of every 3rd hour)
-    - cron: '0 */3 * * *'
+    - cron: '13 */3 * * *'
   workflow_dispatch: # 🚀 Allows manual execution from the GitHub Actions UI
 
 jobs:
