@@ -692,8 +692,284 @@
       font-size: 18px;
     }
 
+    /* ── CONTROL PANEL ── */
+    .control-panel {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 40px 24px;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .filter-tabs {
+      display: flex;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 4px;
+      border-radius: 10px;
+      gap: 4px;
+    }
+
+    .tab-btn {
+      background: transparent;
+      color: var(--muted);
+      border: none;
+      padding: 8px 18px;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    .tab-btn.active {
+      background: var(--accent);
+      color: #fff;
+      box-shadow: 0 4px 12px var(--accent-glow);
+    }
+
+    .tab-btn:hover:not(.active) {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .search-sort-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      flex: 1;
+      justify-content: flex-end;
+    }
+
+    .search-wrapper {
+      position: relative;
+      min-width: 240px;
+      width: 320px;
+      max-width: 100%;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .search-input-field {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px 16px 10px 40px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 500;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      box-sizing: border-box;
+    }
+
+    .search-input-field:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    .sort-select {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px 16px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      outline: none;
+      cursor: pointer;
+      transition: border-color 0.2s;
+      min-width: 200px;
+    }
+
+    .sort-select:focus {
+      border-color: var(--accent);
+    }
+
+    /* ── GLASSMORPHIC MODAL ── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(8, 10, 15, 0.75);
+      backdrop-filter: blur(8px);
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .modal-container {
+      background: linear-gradient(145deg, rgba(22, 26, 35, 0.95), rgba(13, 15, 20, 0.98));
+      border: 1px solid var(--border);
+      width: 100%;
+      max-width: 650px;
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6);
+      transform: scale(0.95);
+      transition: transform 0.3s ease;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .modal-overlay.active .modal-container {
+      transform: scale(1);
+    }
+
+    .modal-header {
+      padding: 24px 32px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      background: rgba(255, 255, 255, 0.01);
+    }
+
+    .modal-title {
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      line-height: 1.3;
+    }
+
+    .modal-close {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 16px;
+      cursor: pointer;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    .modal-close:hover {
+      background: var(--skip-bg);
+      color: var(--skip);
+      border-color: rgba(239, 68, 68, 0.2);
+    }
+
+    .modal-body {
+      padding: 32px;
+      overflow-y: auto;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .modal-section-title {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--muted);
+      margin-bottom: 12px;
+      font-weight: 700;
+    }
+
+    /* Modal metrics grid */
+    .modal-metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+
+    @media (max-width: 500px) {
+      .modal-metrics-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .modal-verdict-card {
+      background: var(--invest-bg);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      border-radius: 16px;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .modal-verdict-card.skip {
+      background: var(--skip-bg);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    .verdict-info {
+      flex: 1;
+    }
+
+    .verdict-title {
+      font-size: 16px;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+
+    .verdict-prob {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .modal-analysis-text {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--text);
+    }
+
+    /* Make cards clickable */
+    .card:not(.locked) {
+      cursor: pointer;
+    }
+
     /* ── RESPONSIVE ── */
     @media (max-width: 600px) {
+      .control-panel {
+        padding-left: 16px;
+        padding-right: 16px;
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .filter-tabs {
+        justify-content: center;
+      }
+      .search-sort-group {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .search-wrapper {
+        width: 100%;
+      }
+      .sort-select {
+        width: 100%;
+      }
 
       header,
       .stats-bar,
@@ -802,6 +1078,29 @@
     </div>
   </div>
 
+  <!-- ── FILTERS & CONTROLS ── -->
+  <div class="control-panel">
+    <div class="filter-tabs">
+      <button class="tab-btn active" data-tab="all">All IPOs</button>
+      <button class="tab-btn" data-tab="Mainboard">Mainboard</button>
+      <button class="tab-btn" data-tab="SME">SME</button>
+    </div>
+    <div class="search-sort-group">
+      <div class="search-wrapper">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="search-input" class="search-input-field" placeholder="Search IPOs by name..." oninput="onFilterChange()" />
+      </div>
+      <select id="sort-select" class="sort-select" onchange="onFilterChange()">
+        <option value="date-desc">Sort by: Date (Newest)</option>
+        <option value="date-asc">Sort by: Date (Oldest)</option>
+        <option value="prob-desc">Sort by: Probability (High to Low)</option>
+        <option value="prob-asc">Sort by: Probability (Low to High)</option>
+        <option value="gmp-desc">Sort by: GMP % (Highest)</option>
+        <option value="sub-desc">Sort by: Subscription (Highest)</option>
+      </select>
+    </div>
+  </div>
+
   <div class="grid" id="grid">
     <div id="loading">
       <div class="spinner"></div>Loading predictions…
@@ -819,6 +1118,10 @@
 
   <script>
     const circumference = 2 * Math.PI * 22; // r=22
+    let allIpos = [];
+    let currentTab = 'all';
+    let searchQuery = '';
+    let sortCriteria = 'date-desc';
 
     function makeRing(prob, label) {
       const cls = label === 'INVEST' ? 'invest' : 'skip';
@@ -837,7 +1140,7 @@
       </div>`;
     }
 
-    function makeCard(ipo) {
+    function makeCard(ipo, index) {
       const label = ipo.decision_label || 'SKIP';
       const isLocked = label === 'LOCKED';
       const cls = isLocked ? 'locked' : (label === 'INVEST' ? 'invest' : 'skip');
@@ -858,9 +1161,10 @@
 
       const icon = isLocked ? '🔒' : (label === 'INVEST' ? '▲' : '▼');
       const badgeLabel = isLocked ? 'LOCKED (AI)' : label;
+      const onclickAttr = isLocked ? '' : `onclick="showModal(${index})"`;
 
       return `
-      <div class="card ${cls}">
+      <div class="card ${cls}" ${onclickAttr}>
         <div class="card-header">
           <div>
             <div class="ipo-name">${ipo.ipo_name}</div>
@@ -898,6 +1202,194 @@
       </div>`;
     }
 
+    function onFilterChange() {
+      // 1. Get active tab
+      const activeTabBtn = document.querySelector('.tab-btn.active');
+      currentTab = activeTabBtn ? activeTabBtn.dataset.tab : 'all';
+      
+      // 2. Get search query
+      searchQuery = document.getElementById('search-input').value.trim().toLowerCase();
+      
+      // 3. Get sorting field
+      sortCriteria = document.getElementById('sort-select').value;
+
+      // Filter
+      let filtered = allIpos.filter(ipo => {
+        if (currentTab !== 'all') {
+          const type = ipo.ipo_type || 'Mainboard';
+          if (type.toLowerCase() !== currentTab.toLowerCase()) {
+            return false;
+          }
+        }
+        if (searchQuery) {
+          return ipo.ipo_name.toLowerCase().includes(searchQuery);
+        }
+        return true;
+      });
+
+      // Sort
+      filtered.sort((a, b) => {
+        if (sortCriteria === 'prob-desc') {
+          return (b.predicted_probability ?? 0) - (a.predicted_probability ?? 0);
+        } else if (sortCriteria === 'prob-asc') {
+          return (a.predicted_probability ?? 0) - (b.predicted_probability ?? 0);
+        } else if (sortCriteria === 'gmp-desc') {
+          return (b.gmp_pct ?? 0) - (a.gmp_pct ?? 0);
+        } else if (sortCriteria === 'sub-desc') {
+          return (b.subscription_x ?? 0) - (a.subscription_x ?? 0);
+        } else if (sortCriteria === 'date-asc') {
+          return (a.listing_date || '').localeCompare(b.listing_date || '');
+        } else { // 'date-desc'
+          return (b.listing_date || '').localeCompare(a.listing_date || '');
+        }
+      });
+
+      window.currentRenderedData = filtered;
+
+      // Render
+      const grid = document.getElementById('grid');
+      if (!filtered.length) {
+        grid.innerHTML = '<div id="empty">🔍 No matching IPOs found. Try adjusting your filters.</div>';
+        return;
+      }
+
+      grid.innerHTML = filtered.map((ipo, idx) => makeCard(ipo, idx)).join('');
+    }
+
+    function generateAIVerdict(ipo) {
+      const gmpPct = ipo.gmp_pct ?? 0;
+      const sub = ipo.subscription_x ?? 0;
+      const size = ipo.ipo_size_cr ?? 0;
+      const anchor = ipo.has_anchor === 1;
+      const prob = ipo.predicted_probability ?? 0;
+      const decision = ipo.decision_label || 'SKIP';
+      
+      let analysis = "";
+      
+      if (decision === 'INVEST') {
+        analysis += `🤖 <strong>AI Neural Network Verdict:</strong> Our ML model recommends an <strong>INVEST</strong> signal for <strong>${ipo.ipo_name}</strong> with a probability rating of <strong>${Math.round(prob * 100)}%</strong>.<br/><br/>`;
+        analysis += `<strong>Key Strength Factors:</strong><br/>`;
+        let bulletCount = 0;
+        
+        if (gmpPct >= 15) {
+          analysis += `• <strong>Strong Grey Market Demand:</strong> The GMP is currently sitting at a premium of <strong>${gmpPct.toFixed(1)}%</strong> over the issue price, suggesting very high listings day gains expectation.<br/>`;
+          bulletCount++;
+        } else if (gmpPct >= 5) {
+          analysis += `• <strong>Moderate Grey Market Demand:</strong> A GMP premium of <strong>${gmpPct.toFixed(1)}%</strong> indicates stable demand and low listing risk.<br/>`;
+          bulletCount++;
+        }
+        
+        if (sub >= 5.0) {
+          analysis += `• <strong>Heavy Subscription:</strong> The IPO is subscribed <strong>${sub.toFixed(1)}x</strong>, showing excellent subscription velocity and post-listing buying support.<br/>`;
+          bulletCount++;
+        } else if (sub >= 1.5) {
+          analysis += `• <strong>Subscribed:</strong> The subscription at <strong>${sub.toFixed(1)}x</strong> is healthy enough to clear the issue.<br/>`;
+          bulletCount++;
+        }
+        
+        if (anchor) {
+          analysis += `• <strong>Anchor Book Allocated:</strong> Confirmed presence of anchor institutional investors indicates strong institutional confidence and validates the company's valuation.<br/>`;
+          bulletCount++;
+        }
+        
+        if (size > 0 && size < 500) {
+          analysis += `• <strong>Tight Supply:</strong> With a small issue size of <strong>₹${size} Cr</strong>, this IPO is prone to high demand squeeze and potential post-listing surge.<br/>`;
+          bulletCount++;
+        }
+        
+        if (bulletCount === 0) {
+          analysis += `• The Neural Network detected complex historical features indicating a high listing success probability based on similar historical IPO profiles.<br/>`;
+        }
+      } else {
+        analysis += `🤖 <strong>AI Neural Network Verdict:</strong> Our ML model recommends a <strong>SKIP</strong> signal for <strong>${ipo.ipo_name}</strong> (probability rating: <strong>${Math.round(prob * 100)}%</strong>).<br/><br/>`;
+        analysis += `<strong>Risk Warning Factors:</strong><br/>`;
+        let bulletCount = 0;
+        
+        if (gmpPct < 5) {
+          analysis += `• <strong>Negligible Grey Market Premium:</strong> The GMP is extremely low or negative at <strong>${gmpPct.toFixed(1)}%</strong>, which carries a severe listing-day discount risk.<br/>`;
+          bulletCount++;
+        }
+        
+        if (sub < 1.5) {
+          analysis += `• <strong>Poor Subscription Interest:</strong> With a subscription rate of only <strong>${sub.toFixed(1)}x</strong>, the market is showing weak subscription velocity, increasing listing-day risk.<br/>`;
+          bulletCount++;
+        }
+        
+        if (!anchor) {
+          analysis += `• <strong>No Anchor Support:</strong> Lack of confirmed anchor institutional backing suggests lower confidence from institutional managers.<br/>`;
+          bulletCount++;
+        }
+        
+        if (size >= 1500) {
+          analysis += `• <strong>Large Market Supply:</strong> The issue size of <strong>₹${size} Cr</strong> is massive. Large supply makes it harder for the share price to pop significantly on listing day unless backed by extreme demand.<br/>`;
+          bulletCount++;
+        }
+        
+        if (bulletCount === 0) {
+          analysis += `• The Neural Network flagged this IPO as carrying higher risks of negative listing gains based on similar historical profiles.<br/>`;
+        }
+      }
+      
+      return analysis;
+    }
+
+    function showModal(index) {
+      const ipo = window.currentRenderedData[index];
+      if (!ipo) return;
+      
+      document.getElementById('modal-title').textContent = ipo.ipo_name;
+      
+      const type = ipo.ipo_type || 'Mainboard';
+      const typeCls = type === 'SME' ? 'sme' : 'mainboard';
+      const label = ipo.decision_label || 'SKIP';
+      const decisionCls = label === 'INVEST' ? 'invest' : 'skip';
+      const icon = label === 'INVEST' ? '▲' : '▼';
+      
+      document.getElementById('modal-tags').innerHTML = `
+        <span class="badge ${typeCls}">${type}</span>
+        <span class="badge ${decisionCls}">${icon} ${label}</span>
+      `;
+      
+      const verdictCard = document.getElementById('modal-verdict-card');
+      const prob = ipo.predicted_probability ?? 0;
+      verdictCard.className = `modal-verdict-card ${decisionCls}`;
+      
+      document.getElementById('modal-verdict-ring').innerHTML = makeRing(prob, label);
+      document.getElementById('modal-verdict-title').textContent = label === 'INVEST' 
+        ? 'INVEST Recommendation' 
+        : 'SKIP Signal';
+      document.getElementById('modal-verdict-prob').textContent = `Neural Network Confidence: ${Math.round(prob * 100)}%`;
+      
+      document.getElementById('modal-analysis-text').innerHTML = generateAIVerdict(ipo);
+      
+      const gmpPct = ipo.gmp_pct != null ? ipo.gmp_pct.toFixed(1) + '%' : '—';
+      const sub = ipo.subscription_x != null ? ipo.subscription_x.toFixed(1) + 'x' : '—';
+      const price = ipo.ipo_price != null ? '₹' + ipo.ipo_price : '—';
+      const gmpRs = ipo.gmp != null ? '₹' + ipo.gmp : '—';
+      const lot = ipo.lot_size ? `${ipo.lot_size} shares (₹${(ipo.lot_size * (ipo.ipo_price || 0)).toLocaleString('en-IN')})` : '—';
+      const size = ipo.ipo_size_cr ? `₹${ipo.ipo_size_cr} Cr` : '—';
+      
+      document.getElementById('modal-metric-gmp-rs').textContent = gmpRs;
+      document.getElementById('modal-metric-gmp-pct').textContent = gmpPct;
+      document.getElementById('modal-metric-sub').textContent = sub;
+      document.getElementById('modal-metric-price').textContent = price;
+      document.getElementById('modal-metric-lot').textContent = lot;
+      document.getElementById('modal-metric-size').textContent = size;
+      
+      document.getElementById('modal-date-open').textContent = ipo.open_date || '—';
+      document.getElementById('modal-date-close').textContent = ipo.close_date || '—';
+      document.getElementById('modal-date-listing').textContent = ipo.listing_date || '—';
+      document.getElementById('modal-anchor-backing').textContent = ipo.has_anchor ? '✅ Anchor Book Present' : '❌ No Anchor Segment';
+      
+      document.getElementById('detail-modal').classList.add('active');
+    }
+
+    function closeModal(event, force = false) {
+      if (force || event.target.id === 'detail-modal') {
+        document.getElementById('detail-modal').classList.remove('active');
+      }
+    }
+
     async function triggerSync() {
       const btn = document.getElementById('refresh-btn');
       const originalText = btn.textContent;
@@ -905,11 +1397,7 @@
       btn.textContent = '⏳ Syncing...';
       
       try {
-        // 1. Tell the backend to run the scraper/predictor pipeline
         await fetch('/refresh-pipeline', { method: 'POST' });
-        
-        // 2. Wait a few seconds for scraper to at least start/hit first pages
-        // Then refresh the UI data from whatever is currently in the DB
         setTimeout(() => {
           loadData();
           loadScorecard();
@@ -917,7 +1405,6 @@
           btn.disabled = false;
           btn.textContent = originalText;
         }, 3000);
-
       } catch (e) {
         console.error(e);
         btn.disabled = false;
@@ -945,7 +1432,6 @@
         const res = await fetch('/today?key=' + encodeURIComponent(vipKey));
         const data = await res.json();
 
-        // 👇 Dynamic Paywall Banner & VIP status handling
         const isLocked = data.some(d => d.decision_label === 'LOCKED');
         const paywallBanner = document.getElementById('paywall-banner');
         const vipHeaderBadge = document.getElementById('vip-header-badge');
@@ -954,7 +1440,6 @@
           paywallBanner.style.display = 'block';
           vipHeaderBadge.style.display = 'none';
           if (vipKey) {
-            // Key was entered but backend still returned LOCKED -> Key is invalid!
             alert("❌ Invalid or expired VIP Access Key. Please contact support or double check your entry.");
             localStorage.removeItem('vip_key');
             document.getElementById('key-input-field').value = '';
@@ -981,7 +1466,8 @@
           return;
         }
 
-        grid.innerHTML = data.map(makeCard).join('');
+        allIpos = data;
+        onFilterChange();
       } catch (e) {
         grid.innerHTML = `<div id="empty">❌ Failed to load data: ${e.message}</div>`;
       }
@@ -1061,7 +1547,6 @@
         const color = m.color || '#6366f1';
         const mood = m.mood_label || 'Neutral';
 
-        // Update text
         document.getElementById('gauge-score').textContent = score;
         document.getElementById('gauge-score').style.color = color;
         document.getElementById('mood-label').textContent = mood;
@@ -1069,10 +1554,8 @@
         document.getElementById('mood-dot').style.background = color;
         document.getElementById('mood-dot').style.boxShadow = `0 0 12px ${color}`;
 
-        // Nifty price
         document.getElementById('nifty-price').textContent = m.nifty_price ? m.nifty_price.toLocaleString('en-IN') : '—';
 
-        // Nifty daily change
         const changeEl = document.getElementById('nifty-change');
         if (m.nifty_change_pct != null) {
           const sign = m.nifty_change_pct >= 0 ? '+' : '';
@@ -1080,14 +1563,12 @@
           changeEl.className = 'md-value ' + (m.nifty_change_pct >= 0 ? 'positive' : 'negative');
         }
 
-        // VIX
         const vixEl = document.getElementById('vix-value');
         if (m.vix_value != null) {
           vixEl.textContent = m.vix_value.toFixed(2);
           vixEl.className = 'md-value ' + (m.vix_value < 16 ? 'positive' : 'negative');
         }
 
-        // Animate gauge arc
         const gaugeFill = document.getElementById('gauge-fill');
         const arcLength = gaugeFill.getTotalLength();
         gaugeFill.style.strokeDasharray = arcLength;
@@ -1096,18 +1577,24 @@
         gaugeFill.style.stroke = color;
         gaugeFill.style.setProperty('--gauge-color', color);
 
-        // Animate needle: -90deg (score=0) to +90deg (score=100)
         const needleDeg = -90 + (score / 100) * 180;
         document.getElementById('gauge-needle').style.transform = `rotate(${needleDeg}deg)`;
 
-        // Glow the card border
         document.getElementById('meter-card').style.borderColor = color + '44';
 
       } catch (e) {
-        // Silently fail - meter is optional
         console.log('Market meter not available:', e.message);
       }
     }
+
+    // Bind tab button listeners
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        onFilterChange();
+      });
+    });
 
     loadData();
     loadScorecard();
@@ -1119,6 +1606,84 @@
       loadMarketMeter();
     }, 5 * 60 * 1000); // auto-refresh every 5 min
   </script>
+
+  <!-- ── DETAIL MODAL ── -->
+  <div class="modal-overlay" id="detail-modal" onclick="closeModal(event)">
+    <div class="modal-container">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title" id="modal-title">Company Name Ltd</div>
+          <div style="margin-top: 8px; display: flex; gap: 8px; align-items: center;" id="modal-tags">
+            <span class="badge mainboard">Mainboard</span>
+            <span class="badge invest">INVEST</span>
+          </div>
+        </div>
+        <button class="modal-close" onclick="closeModal(event, true)">✕</button>
+      </div>
+      <div class="modal-body">
+        
+        <!-- Verdict Banner -->
+        <div class="modal-verdict-card" id="modal-verdict-card">
+          <div id="modal-verdict-ring"></div>
+          <div class="verdict-info">
+            <div class="verdict-title" id="modal-verdict-title">Strong INVEST Recommendation</div>
+            <div class="verdict-prob" id="modal-verdict-prob">Neural Network Confidence: 84%</div>
+          </div>
+        </div>
+
+        <!-- AI Verdict Text -->
+        <div>
+          <div class="modal-section-title">AI Signal Analysis</div>
+          <div class="modal-analysis-text" id="modal-analysis-text">
+            AI analysis goes here...
+          </div>
+        </div>
+
+        <!-- Financial Metrics -->
+        <div>
+          <div class="modal-section-title">IPO Details & Financial Metrics</div>
+          <div class="modal-metrics-grid">
+            <div class="metric">
+              <div class="m-label">GMP (₹)</div>
+              <div class="m-value gmp" id="modal-metric-gmp-rs">₹—</div>
+            </div>
+            <div class="metric">
+              <div class="m-label">GMP %</div>
+              <div class="m-value gmp" id="modal-metric-gmp-pct">—</div>
+            </div>
+            <div class="metric">
+              <div class="m-label">Subscription Rate</div>
+              <div class="m-value sub" id="modal-metric-sub">—</div>
+            </div>
+            <div class="metric">
+              <div class="m-label">IPO Price</div>
+              <div class="m-value" id="modal-metric-price">—</div>
+            </div>
+            <div class="metric">
+              <div class="m-label">Lot Size / Min Application</div>
+              <div class="m-value" id="modal-metric-lot">—</div>
+            </div>
+            <div class="metric">
+              <div class="m-label">IPO Size</div>
+              <div class="m-value" id="modal-metric-size">—</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dates & Subscriptions -->
+        <div>
+          <div class="modal-section-title">Timeline & Info</div>
+          <div style="background: rgba(255,255,255,0.01); border: 1px solid var(--border); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 10px; font-size: 13px;">
+            <div style="display: flex; justify-content: space-between;"><span style="color: var(--muted)">Offer Open Date:</span><strong id="modal-date-open">—</strong></div>
+            <div style="display: flex; justify-content: space-between;"><span style="color: var(--muted)">Offer Close Date:</span><strong id="modal-date-close">—</strong></div>
+            <div style="display: flex; justify-content: space-between;"><span style="color: var(--muted)">Expected Listing Date:</span><strong id="modal-date-listing">—</strong></div>
+            <div style="display: flex; justify-content: space-between;"><span style="color: var(--muted)">Institutional Backing:</span><strong id="modal-anchor-backing">—</strong></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
 
 </body>
 
