@@ -149,10 +149,28 @@ def scrape_daily_ipos():
             close_date = cells[8].text.split("\n")[0].strip() if len(cells) > 8 else ""
 
             # 👇 Determine IPO Type (SME vs Mainboard)
-            if lot_size >= 100 or "SME" in clean_name.upper():
-                ipo_type = "SME"
-            else:
-                ipo_type = "Mainboard"
+            is_sme = "SME" in clean_name.upper()
+
+            # Check the href URL of the link (Foolproof fallback)
+            try:
+                name_element = cells[0].find_element(By.TAG_NAME, "a")
+                href = name_element.get_attribute("href")
+                if href and "/sme-ipo/" in href.lower():
+                    is_sme = True
+            except Exception:
+                pass
+
+            # Apply the Financial Rule (if price and lot size are known)
+            if not is_sme and lot_size > 0 and ipo_price > 0:
+                min_investment = lot_size * ipo_price
+                if min_investment >= 80000:
+                    is_sme = True
+
+            # Apply high lot size threshold fallback
+            if not is_sme and lot_size >= 500:
+                is_sme = True
+
+            ipo_type = "SME" if is_sme else "Mainboard"
 
             # Anchor Status
             has_anchor = 0
