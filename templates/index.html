@@ -1420,6 +1420,7 @@
       const type = ipo.ipo_type || 'Mainboard';
       const typeCls = type === 'SME' ? 'sme' : 'mainboard';
       const label = ipo.decision_label || 'SKIP';
+      const isLocked = label === 'LOCKED';
       const decisionCls = label === 'INVEST' ? 'invest' : 'skip';
       const icon = label === 'INVEST' ? '▲' : '▼';
       
