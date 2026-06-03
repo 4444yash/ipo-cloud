@@ -1164,13 +1164,53 @@
       </div>`;
     }
 
+    function getExpectedProfitText(ipo) {
+      if (ipo.gmp == null || ipo.lot_size == null || ipo.gmp_pct == null) {
+        return '—';
+      }
+      const profit = Math.round(ipo.gmp * ipo.lot_size);
+      const sign = profit >= 0 ? '+' : '';
+      return `🔥 Expected Listing Profit: ${sign}₹${profit.toLocaleString('en-IN')} per lot (${sign}${ipo.gmp_pct.toFixed(1)}% gain)`;
+    }
+
+    function getDemandMeterText(sub) {
+      if (sub == null || isNaN(sub) || sub <= 0) return '—';
+      
+      let emoji = '😐';
+      let speed = 'Low';
+      if (sub >= 25) {
+        emoji = '🚀';
+        speed = 'Extreme';
+      } else if (sub >= 10) {
+        emoji = '🤩';
+        speed = 'Very High';
+      } else if (sub >= 3) {
+        emoji = '🔥';
+        speed = 'High';
+      } else if (sub >= 1.1) {
+        emoji = '🟢';
+        speed = 'Healthy';
+      } else if (sub >= 0.9) {
+        emoji = '🟡';
+        speed = 'Fully Subscribed';
+      } else {
+        emoji = '🔴';
+        speed = 'Under-subscribed';
+      }
+      
+      const bidRatio = Math.round(sub);
+      if (bidRatio >= 1) {
+        return `${emoji} ${speed} Demand (${bidRatio} people bidding for every 1 share)`;
+      } else {
+        return `${emoji} ${speed} Demand (${sub.toFixed(1)}x demand)`;
+      }
+    }
+
     function makeCard(ipo, index) {
       const label = ipo.decision_label || 'SKIP';
       const isLocked = label === 'LOCKED';
       const cls = isLocked ? 'locked' : (label === 'INVEST' ? 'invest' : 'skip');
       const prob = ipo.predicted_probability ?? 0;
-      const gmp = ipo.gmp_pct != null ? ipo.gmp_pct.toFixed(1) + '%' : '—';
-      const sub = ipo.subscription_x != null ? ipo.subscription_x.toFixed(1) + 'x' : '—';
       const price = ipo.ipo_price != null ? '₹' + ipo.ipo_price : '—';
       const anchor = ipo.has_anchor ? '✅ Anchor investors' : '❌ No anchor';
       
@@ -1188,6 +1228,10 @@
       const onclickAttr = isLocked ? '' : `onclick="showModal(${index})"`;
       const isClosed = ipo.status === 'closed';
 
+      // Formatting Profit and Demand
+      const expectedProfitVal = isLocked ? '🔒 LOCKED (AI)' : getExpectedProfitText(ipo);
+      const demandMeterVal = getDemandMeterText(ipo.subscription_x);
+
       return `
       <div class="card ${cls}" ${onclickAttr}>
         <div class="card-header">
@@ -1202,20 +1246,20 @@
           ${makeRing(prob, label)}
         </div>
         <div class="metrics">
-          <div class="metric">
-            <div class="m-label">GMP %</div>
-            <div class="m-value gmp">${gmp}</div>
+          <div class="metric" style="grid-column: span 2;">
+            <div class="m-label">Expected Listing Profit</div>
+            <div class="m-value gmp" style="font-size: 13px;">${expectedProfitVal}</div>
           </div>
-          <div class="metric">
-            <div class="m-label">Subscription</div>
-            <div class="m-value sub">${sub}</div>
+          <div class="metric" style="grid-column: span 2;">
+            <div class="m-label">Demand Meter</div>
+            <div class="m-value sub" style="font-size: 13px;">${demandMeterVal}</div>
           </div>
           <div class="metric">
             <div class="m-label">IPO Price</div>
             <div class="m-value">${price}</div>
           </div>
           <div class="metric">
-            <div class="m-label">GMP (₹)</div>
+            <div class="m-label">GMP (Per Share)</div>
             <div class="m-value">${ipo.gmp != null ? '₹' + ipo.gmp : '—'}</div>
           </div>
         </div>
@@ -1399,15 +1443,18 @@
       document.getElementById('modal-analysis-text').innerHTML = generateAIVerdict(ipo);
       
       const gmpPct = ipo.gmp_pct != null ? ipo.gmp_pct.toFixed(1) + '%' : '—';
-      const sub = ipo.subscription_x != null ? ipo.subscription_x.toFixed(1) + 'x' : '—';
       const price = ipo.ipo_price != null ? '₹' + ipo.ipo_price : '—';
       const gmpRs = ipo.gmp != null ? '₹' + ipo.gmp : '—';
       const lot = ipo.lot_size ? `${ipo.lot_size} shares (₹${(ipo.lot_size * (ipo.ipo_price || 0)).toLocaleString('en-IN')})` : '—';
       const size = ipo.ipo_size_cr ? `₹${ipo.ipo_size_cr} Cr` : '—';
       
+      const expectedProfitVal = isLocked ? '🔒 LOCKED (AI)' : getExpectedProfitText(ipo);
+      const demandMeterVal = getDemandMeterText(ipo.subscription_x);
+
+      document.getElementById('modal-metric-expected-profit').innerHTML = expectedProfitVal;
+      document.getElementById('modal-metric-demand-meter').innerHTML = demandMeterVal;
       document.getElementById('modal-metric-gmp-rs').textContent = gmpRs;
       document.getElementById('modal-metric-gmp-pct').textContent = gmpPct;
-      document.getElementById('modal-metric-sub').textContent = sub;
       document.getElementById('modal-metric-price').textContent = price;
       document.getElementById('modal-metric-lot').textContent = lot;
       document.getElementById('modal-metric-size').textContent = size;
@@ -1692,30 +1739,38 @@
         <!-- Financial Metrics -->
         <div>
           <div class="modal-section-title">IPO Details & Financial Metrics</div>
-          <div class="modal-metrics-grid">
+          <div class="modal-metrics-grid" style="display: flex; flex-direction: column; gap: 12px;">
             <div class="metric">
-              <div class="m-label">GMP (₹)</div>
-              <div class="m-value gmp" id="modal-metric-gmp-rs">₹—</div>
+              <div class="m-label">Expected Listing Profit</div>
+              <div class="m-value gmp" id="modal-metric-expected-profit" style="font-size: 14px; color: #f59e0b;">—</div>
             </div>
             <div class="metric">
-              <div class="m-label">GMP %</div>
-              <div class="m-value gmp" id="modal-metric-gmp-pct">—</div>
+              <div class="m-label">Demand Meter</div>
+              <div class="m-value sub" id="modal-metric-demand-meter" style="font-size: 14px; color: var(--accent);">—</div>
             </div>
-            <div class="metric">
-              <div class="m-label">Subscription Rate</div>
-              <div class="m-value sub" id="modal-metric-sub">—</div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+              <div class="metric">
+                <div class="m-label">GMP (Per Share)</div>
+                <div class="m-value gmp" id="modal-metric-gmp-rs">₹—</div>
+              </div>
+              <div class="metric">
+                <div class="m-label">GMP %</div>
+                <div class="m-value gmp" id="modal-metric-gmp-pct">—</div>
+              </div>
             </div>
-            <div class="metric">
-              <div class="m-label">IPO Price</div>
-              <div class="m-value" id="modal-metric-price">—</div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+              <div class="metric">
+                <div class="m-label">IPO Price</div>
+                <div class="m-value" id="modal-metric-price">—</div>
+              </div>
+              <div class="metric">
+                <div class="m-label">IPO Size</div>
+                <div class="m-value" id="modal-metric-size">—</div>
+              </div>
             </div>
             <div class="metric">
               <div class="m-label">Lot Size / Min Application</div>
               <div class="m-value" id="modal-metric-lot">—</div>
-            </div>
-            <div class="metric">
-              <div class="m-label">IPO Size</div>
-              <div class="m-value" id="modal-metric-size">—</div>
             </div>
           </div>
         </div>
