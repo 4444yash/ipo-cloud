@@ -85,6 +85,47 @@ listed_patterns = [
 pattern = "|".join(listed_patterns)
 df = df[~df["ipo_name"].str.contains(pattern, regex=True, na=False)]
 
+# Filter out IPOs whose close date has passed (after 5 PM IST on close_date)
+from datetime import timezone, timedelta
+ist_tz = timezone(timedelta(hours=5, minutes=30))
+now_ist = datetime.now(timezone.utc).astimezone(ist_tz)
+
+def get_ipo_status(close_date_str):
+    if not close_date_str or not isinstance(close_date_str, str):
+        return "active"
+    close_date_str = close_date_str.strip()
+    if not close_date_str:
+        return "active"
+    try:
+        parsed_date = datetime.strptime(close_date_str, "%d-%b")
+        close_year = now_ist.year
+        if now_ist.month in [1, 2] and parsed_date.month in [11, 12]:
+            close_year = now_ist.year - 1
+        elif now_ist.month in [11, 12] and parsed_date.month in [1, 2]:
+            close_year = now_ist.year + 1
+        
+        close_datetime = datetime(
+            year=close_year,
+            month=parsed_date.month,
+            day=parsed_date.day,
+            hour=17,
+            minute=0,
+            second=0,
+            tzinfo=ist_tz
+        )
+        return "closed" if now_ist > close_datetime else "active"
+    except Exception as e:
+        print(f"⚠️ Warning: Could not parse close date '{close_date_str}': {e}")
+        return "active"
+
+if "close_date" in df.columns:
+    df["status"] = df["close_date"].apply(get_ipo_status)
+    closed_count = (df["status"] == "closed").sum()
+    if closed_count > 0:
+        print(f"ℹ️ Found {closed_count} closed IPOs (will be grouped under 'Recently Closed' tab).")
+else:
+    df["status"] = "active"
+
 if df.empty:
     print("⚠️ No ACTIVE IPOs detected (all are likely listed or closed). Clearing dashboard.")
     try:

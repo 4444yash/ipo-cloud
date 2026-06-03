@@ -33,9 +33,17 @@ def init_db():
             subscription_x REAL,
             open_date TEXT,
             close_date TEXT,
-            ipo_type TEXT
+            ipo_type TEXT,
+            status TEXT
         )
     """)
+    
+    # Auto-migration for existing databases
+    cursor = conn.cursor()
+    cols = [row[1] for row in cursor.execute("PRAGMA table_info(ipo_predictions)").fetchall()]
+    if "status" not in cols:
+        conn.execute("ALTER TABLE ipo_predictions ADD COLUMN status TEXT")
+        conn.commit()
     conn.execute("""
         CREATE TABLE IF NOT EXISTS market_meter (
             score INTEGER,

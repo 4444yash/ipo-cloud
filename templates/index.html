@@ -1084,6 +1084,7 @@
       <button class="tab-btn active" data-tab="all">All IPOs</button>
       <button class="tab-btn" data-tab="Mainboard">Mainboard</button>
       <button class="tab-btn" data-tab="SME">SME</button>
+      <button class="tab-btn" data-tab="Closed">Recently Closed</button>
     </div>
     <div class="search-sort-group">
       <div class="search-wrapper">
@@ -1162,6 +1163,7 @@
       const icon = isLocked ? '🔒' : (label === 'INVEST' ? '▲' : '▼');
       const badgeLabel = isLocked ? 'LOCKED (AI)' : label;
       const onclickAttr = isLocked ? '' : `onclick="showModal(${index})"`;
+      const isClosed = ipo.status === 'closed';
 
       return `
       <div class="card ${cls}" ${onclickAttr}>
@@ -1171,6 +1173,7 @@
             <div style="margin-top:8px; display: flex; gap: 8px; flex-wrap: wrap;">
               <span class="badge ${isLocked ? 'skip' : cls}">${icon} ${badgeLabel}</span>
               <span class="badge ${typeCls}">${type}</span>
+              ${isClosed ? '<span class="badge skip">🔒 CLOSED</span>' : ''}
             </div>
           </div>
           ${makeRing(prob, label)}
@@ -1215,10 +1218,20 @@
 
       // Filter
       let filtered = allIpos.filter(ipo => {
-        if (currentTab !== 'all') {
-          const type = ipo.ipo_type || 'Mainboard';
-          if (type.toLowerCase() !== currentTab.toLowerCase()) {
+        const ipoStatus = ipo.status || 'active';
+        if (currentTab === 'Closed') {
+          if (ipoStatus !== 'closed') {
             return false;
+          }
+        } else {
+          if (ipoStatus === 'closed') {
+            return false;
+          }
+          if (currentTab !== 'all') {
+            const type = ipo.ipo_type || 'Mainboard';
+            if (type.toLowerCase() !== currentTab.toLowerCase()) {
+              return false;
+            }
           }
         }
         if (searchQuery) {
