@@ -1211,6 +1211,8 @@
       const isLocked = label === 'LOCKED';
       const cls = isLocked ? 'locked' : (label === 'INVEST' ? 'invest' : 'skip');
       const prob = ipo.predicted_probability ?? 0;
+      const gmp = ipo.gmp_pct != null ? ipo.gmp_pct.toFixed(1) + '%' : '—';
+      const sub = ipo.subscription_x != null ? ipo.subscription_x.toFixed(1) + 'x' : '—';
       const price = ipo.ipo_price != null ? '₹' + ipo.ipo_price : '—';
       const anchor = ipo.has_anchor ? '✅ Anchor investors' : '❌ No anchor';
       
@@ -1228,10 +1230,6 @@
       const onclickAttr = isLocked ? '' : `onclick="showModal(${index})"`;
       const isClosed = ipo.status === 'closed';
 
-      // Formatting Profit and Demand
-      const expectedProfitVal = isLocked ? '🔒 LOCKED (AI)' : getExpectedProfitText(ipo);
-      const demandMeterVal = getDemandMeterText(ipo.subscription_x);
-
       return `
       <div class="card ${cls}" ${onclickAttr}>
         <div class="card-header">
@@ -1246,13 +1244,13 @@
           ${makeRing(prob, label)}
         </div>
         <div class="metrics">
-          <div class="metric" style="grid-column: span 2;">
-            <div class="m-label">Expected Listing Profit</div>
-            <div class="m-value gmp" style="font-size: 13px;">${expectedProfitVal}</div>
+          <div class="metric">
+            <div class="m-label">GMP %</div>
+            <div class="m-value gmp">${gmp}</div>
           </div>
-          <div class="metric" style="grid-column: span 2;">
-            <div class="m-label">Demand Meter</div>
-            <div class="m-value sub" style="font-size: 13px;">${demandMeterVal}</div>
+          <div class="metric">
+            <div class="m-label">Subscription</div>
+            <div class="m-value sub">${sub}</div>
           </div>
           <div class="metric">
             <div class="m-label">IPO Price</div>
