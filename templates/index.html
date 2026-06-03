@@ -1108,6 +1108,29 @@
     </div>
   </div>
 
+  <!-- ── IPO BIDDING CHEAT SHEET ── -->
+  <h2 style="margin: 40px 40px 20px; font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+    <span style="color: var(--accent);">💡</span> Smart IPO Bidding Cheat Sheet (Beginners)
+  </h2>
+  <div class="cheat-sheet-container" style="margin: 0 40px 20px; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+    <div style="background: rgba(255,255,255,0.01); padding: 18px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.03);">
+      <h3 style="font-size: 15px; font-weight: 600; color: #8b5cf6; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">🎯 Tick "Cut-off Price"</h3>
+      <p style="font-size: 13px; color: var(--muted); line-height: 1.5;">Always select the <strong>"Cut-off Price"</strong> box. If you bid below the final issue price on popular IPOs, your application gets rejected immediately.</p>
+    </div>
+    <div style="background: rgba(255,255,255,0.01); padding: 18px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.03);">
+      <h3 style="font-size: 15px; font-weight: 600; color: #8b5cf6; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">💳 PAN Name Match</h3>
+      <p style="font-size: 13px; color: var(--muted); line-height: 1.5;">Your Demat account PAN name <strong>must match</strong> your Bank/UPI account name. Third-party payments (e.g. paying with a spouse's UPI) get auto-rejected.</p>
+    </div>
+    <div style="background: rgba(255,255,255,0.01); padding: 18px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.03);">
+      <h3 style="font-size: 15px; font-weight: 600; color: #8b5cf6; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">⚠️ SME Capital Warning</h3>
+      <p style="font-size: 13px; color: var(--muted); line-height: 1.5;">SME IPOs require ₹1.2L+ minimum capital and must be traded in full lots (no single shares). Only apply if you understand the liquidity risks.</p>
+    </div>
+    <div style="background: rgba(255,255,255,0.01); padding: 18px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.03);">
+      <h3 style="font-size: 15px; font-weight: 600; color: #8b5cf6; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">🕒 Bidding Timing</h3>
+      <p style="font-size: 13px; color: var(--muted); line-height: 1.5;">Check final subscription trends and our AI predictions on the <strong>last day of bidding (Day 3)</strong> before applying to avoid sudden drops.</p>
+    </div>
+  </div>
+
   <h2 style="margin: 40px 40px 20px; font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
     <span style="color: var(--accent);">📊</span> Past Performance Scorecard
   </h2>
@@ -1393,6 +1416,20 @@
       document.getElementById('modal-date-close').textContent = ipo.close_date || '—';
       document.getElementById('modal-date-listing').textContent = ipo.listing_date || '—';
       document.getElementById('modal-anchor-backing').textContent = ipo.has_anchor ? '✅ Anchor Book Present' : '❌ No Anchor Segment';
+      
+      // Contextual Tip generation
+      let tipHtml = "";
+      const isSme = type === 'SME';
+      const isClosed = ipo.status === 'closed';
+
+      if (isClosed) {
+        tipHtml = `<strong>Listing Day Panic Warning:</strong> Bidding is already closed for this IPO. If you applied and got allotted shares, do not trade in the 9:00 AM to 9:45 AM pre-open session on listing day. It's highly volatile. Wait until the market stabilizes around <strong>10:15 AM to 10:30 AM</strong> to make your exit or hold decision.`;
+      } else if (isSme) {
+        tipHtml = `<strong>SME Lot Size Warning:</strong> This is an SME (Small and Medium Enterprises) IPO. Unlike normal IPOs (₹15,000 minimum), this requires a minimum capital block of <strong>₹1.2 Lakhs+</strong>. Also, you must trade in full lots (cannot sell single shares later). Recommended only if you have high surplus capital.`;
+      } else {
+        tipHtml = `<strong>Tick "Cut-off Price":</strong> Always select the <strong>'Cut-off Price'</strong> checkbox when submitting your bid on your broker app (Zerodha, Groww, AngelOne, etc.). Since this IPO is in demand, bidding at a lower price band will disqualify your application instantly. Also, ensure your UPI payment name matches your PAN card name.`;
+      }
+      document.getElementById('modal-smart-tip').innerHTML = tipHtml;
       
       document.getElementById('detail-modal').classList.add('active');
     }
@@ -1691,6 +1728,14 @@
             <div style="display: flex; justify-content: space-between;"><span style="color: var(--muted)">Offer Close Date:</span><strong id="modal-date-close">—</strong></div>
             <div style="display: flex; justify-content: space-between;"><span style="color: var(--muted)">Expected Listing Date:</span><strong id="modal-date-listing">—</strong></div>
             <div style="display: flex; justify-content: space-between;"><span style="color: var(--muted)">Institutional Backing:</span><strong id="modal-anchor-backing">—</strong></div>
+          </div>
+        </div>
+
+        <!-- Dynamic Smart Bidding Tip -->
+        <div style="margin-top: 20px;">
+          <div class="modal-section-title" style="color: #8b5cf6;">💡 Smart Bidding Tip for Beginners</div>
+          <div class="modal-analysis-text" id="modal-smart-tip" style="background: rgba(139, 92, 246, 0.05); border: 1px solid rgba(139, 92, 246, 0.2); border-radius: 12px; padding: 16px; line-height: 1.5; font-size: 13px;">
+            Loading tip...
           </div>
         </div>
 
