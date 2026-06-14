@@ -4,3 +4,9 @@ __pycache__/
 *.pyc
 data/
 
+# Node / Vite frontend
+node_modules/
+dist/
+*.local
+.env.development.local
+
