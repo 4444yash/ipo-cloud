@@ -170,12 +170,14 @@ X_scaled = scaler.transform(X)
 df["predicted_probability"] = model.predict(X_scaled).flatten()
 
 # Decision Logic
-df["final_decision"] = 0 
-df.loc[df["gmp_pct"] >= GMP_AUTO_INVEST, "final_decision"] = 1
+df["final_decision"] = 0
+# Only consider IPOs with an anchor for investment decisions
+df.loc[(df["has_anchor"] == 1) & (df["gmp_pct"] >= GMP_AUTO_INVEST), "final_decision"] = 1
 df.loc[
-    (df["gmp_pct"] >= GMP_MIN) & 
-    (df["gmp_pct"] < GMP_AUTO_INVEST) & 
-    (df["predicted_probability"] >= PROB_THRESHOLD), 
+    (df["has_anchor"] == 1) &
+    (df["gmp_pct"] >= GMP_MIN) &
+    (df["gmp_pct"] < GMP_AUTO_INVEST) &
+    (df["predicted_probability"] >= PROB_THRESHOLD),
     "final_decision"
 ] = 1
 

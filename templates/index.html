@@ -16,17 +16,28 @@
     }
 
     :root {
-      --bg: #0d0f14;
-      --surface: #161a23;
-      --border: #1f2535;
-      --text: #e8eaf0;
-      --muted: #6b7280;
-      --invest: #10b981;
-      --invest-bg: rgba(16, 185, 129, 0.12);
-      --skip: #ef4444;
-      --skip-bg: rgba(239, 68, 68, 0.10);
-      --accent: #6366f1;
-      --accent-glow: rgba(99, 102, 241, 0.25);
+      --bg: #121214;
+      --surface: #191c24;
+      --border: #2a2e3d;
+      --text: #e2e8f0;
+      --muted: #8a94a6;
+      --invest: #00b074;
+      --invest-bg: rgba(0, 176, 116, 0.1);
+      --skip: #df3b3b;
+      --skip-bg: rgba(223, 59, 59, 0.1);
+      --accent: #387ed1;
+      --badge-bg: rgba(255, 255, 255, 0.05);
+    }
+
+    body.theme-light {
+      --bg: #fbfbfb;
+      --surface: #ffffff;
+      --border: #e2e8f0;
+      --text: #1f2229;
+      --muted: #727a8a;
+      --invest-bg: rgba(0, 176, 116, 0.08);
+      --skip-bg: rgba(223, 59, 59, 0.08);
+      --badge-bg: rgba(0, 0, 0, 0.04);
     }
 
     body {
@@ -34,13 +45,46 @@
       color: var(--text);
       font-family: 'Inter', sans-serif;
       min-height: 100vh;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .theme-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+      cursor: pointer;
+      padding: 8px 12px;
+      border-radius: 4px;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-color 0.15s, background 0.15s;
+    }
+
+    .theme-btn:hover {
+      border-color: var(--muted);
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    body.theme-light .theme-btn:hover {
+      background: rgba(0, 0, 0, 0.02);
+    }
+
+    .main-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 32px 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
     }
 
     /* ── HEADER ── */
     header {
-      background: linear-gradient(135deg, #1a1d2e 0%, #0f1119 100%);
+      background: var(--surface);
       border-bottom: 1px solid var(--border);
-      padding: 28px 40px;
+      padding: 20px 40px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -51,25 +95,25 @@
     .logo {
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 12px;
     }
 
     .logo-icon {
-      width: 44px;
-      height: 44px;
-      background: linear-gradient(135deg, var(--accent), #8b5cf6);
-      border-radius: 12px;
+      width: 32px;
+      height: 32px;
+      background: var(--accent);
+      border-radius: 4px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 22px;
-      box-shadow: 0 0 20px var(--accent-glow);
+      font-size: 16px;
+      box-shadow: none;
     }
 
     .logo h1 {
-      font-size: 22px;
-      font-weight: 800;
-      letter-spacing: -0.5px;
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: normal;
     }
 
     .logo p {
@@ -87,56 +131,63 @@
     #last-updated {
       font-size: 12px;
       color: var(--muted);
-      background: var(--surface);
+      background: var(--bg);
       border: 1px solid var(--border);
-      padding: 6px 14px;
-      border-radius: 20px;
+      padding: 6px 12px;
+      border-radius: 4px;
     }
 
     #refresh-btn {
-      background: linear-gradient(135deg, var(--accent), #8b5cf6);
+      background: var(--accent);
       color: #fff;
-      border: none;
+      border: 1px solid transparent;
       cursor: pointer;
-      padding: 8px 18px;
-      border-radius: 8px;
+      padding: 8px 16px;
+      border-radius: 4px;
       font-size: 13px;
-      font-weight: 600;
-      transition: opacity 0.2s, transform 0.15s;
+      font-weight: 500;
+      transition: background 0.15s;
     }
 
     #refresh-btn:hover {
-      opacity: 0.88;
-      transform: translateY(-1px);
+      background: #2a6ab8;
     }
 
     /* ── STATS BAR ── */
     .stats-bar {
       display: flex;
-      gap: 16px;
-      flex-wrap: wrap;
-      padding: 24px 40px;
+      align-items: center;
+      gap: 24px;
+      padding: 16px 24px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
     }
 
     .stat-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 18px 24px;
-      flex: 1;
-      min-width: 140px;
+      background: transparent;
+      border: none;
+      padding: 0;
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      flex: none;
+      min-width: auto;
+      box-shadow: none;
     }
 
     .stat-card .value {
-      font-size: 32px;
-      font-weight: 800;
-      line-height: 1;
+      font-size: 15px;
+      font-weight: 600;
+      line-height: 1.2;
     }
 
     .stat-card .label {
-      font-size: 12px;
+      font-size: 11px;
       color: var(--muted);
-      margin-top: 6px;
+      margin-top: 0;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
 
     .stat-card.invest .value {
@@ -156,40 +207,23 @@
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
       gap: 20px;
-      padding: 0 40px 40px;
+      padding: 0;
     }
 
     /* ── CARD ── */
     .card {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 18px;
-      padding: 22px;
+      border-radius: 4px;
+      padding: 20px;
       position: relative;
       overflow: hidden;
-      transition: transform 0.2s, box-shadow 0.2s;
+      transition: border-color 0.15s, background 0.15s;
+      box-shadow: none;
     }
 
     .card:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
-    }
-
-    .card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 3px;
-    }
-
-    .card.invest::before {
-      background: linear-gradient(90deg, var(--invest), #34d399);
-    }
-
-    .card.skip::before {
-      background: linear-gradient(90deg, var(--skip), #f87171);
+      border-color: var(--accent);
     }
 
     /* badge */
@@ -198,35 +232,35 @@
       align-items: center;
       gap: 5px;
       font-size: 11px;
-      font-weight: 700;
-      padding: 4px 12px;
-      border-radius: 20px;
-      letter-spacing: 0.5px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 3px;
+      letter-spacing: normal;
       text-transform: uppercase;
     }
 
     .badge.invest {
       background: var(--invest-bg);
       color: var(--invest);
+      border: 1px solid rgba(0, 176, 116, 0.2);
     }
 
     .badge.skip {
       background: var(--skip-bg);
       color: var(--skip);
+      border: 1px solid rgba(223, 59, 59, 0.2);
     }
 
     .badge.sme {
-      background: rgba(168, 85, 247, 0.12);
-      color: #c084fc;
-      border: 1px solid rgba(168, 85, 247, 0.25);
-      box-shadow: 0 0 10px rgba(168, 85, 247, 0.1);
+      background: var(--badge-bg);
+      color: var(--text);
+      border: 1px solid var(--border);
     }
 
     .badge.mainboard {
-      background: rgba(59, 130, 246, 0.12);
-      color: #60a5fa;
-      border: 1px solid rgba(59, 130, 246, 0.25);
-      box-shadow: 0 0 10px rgba(59, 130, 246, 0.1);
+      background: var(--badge-bg);
+      color: var(--text);
+      border: 1px solid var(--border);
     }
 
     .card-header {
@@ -238,91 +272,68 @@
     }
 
     .ipo-name {
-      font-size: 15px;
-      font-weight: 700;
+      font-size: 16px;
+      font-weight: 600;
       line-height: 1.3;
       flex: 1;
+      color: var(--text);
     }
 
-    /* probability ring */
-    .prob-ring {
-      position: relative;
-      width: 56px;
-      height: 56px;
+    /* card score */
+    .card-score {
+      text-align: right;
       flex-shrink: 0;
     }
 
-    .prob-ring svg {
-      transform: rotate(-90deg);
-    }
-
-    .prob-ring .bg-circle {
-      stroke: var(--border);
-    }
-
-    .prob-ring .fg-circle {
-      stroke-linecap: round;
-      transition: stroke-dashoffset 0.8s ease;
-    }
-
-    .prob-ring.invest .fg-circle {
-      stroke: var(--invest);
-    }
-
-    .prob-ring.skip .fg-circle {
-      stroke: var(--skip);
-    }
-
-    .prob-text {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      font-size: 11px;
+    .card-score .score-num {
+      font-size: 20px;
       font-weight: 700;
-      line-height: 1;
+      line-height: 1.1;
     }
 
-    .prob-text small {
-      font-size: 8px;
+    .card-score .score-num.invest {
+      color: var(--invest);
+    }
+
+    .card-score .score-num.skip {
+      color: var(--skip);
+    }
+
+    .card-score .score-label {
+      font-size: 9px;
       color: var(--muted);
-      margin-top: 1px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 2px;
     }
 
     /* metrics grid */
     .metrics {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-top: 4px;
+      gap: 8px;
+      margin-top: 12px;
     }
 
     .metric {
-      background: rgba(255, 255, 255, 0.03);
+      background: var(--bg);
       border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 10px 12px;
+      border-radius: 4px;
+      padding: 8px 12px;
     }
 
     .metric .m-label {
       font-size: 10px;
       color: var(--muted);
-      margin-bottom: 4px;
+      margin-bottom: 2px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
 
     .metric .m-value {
-      font-size: 16px;
-      font-weight: 700;
-    }
-
-    .metric .m-value.gmp {
-      color: #f59e0b;
-    }
-
-    .metric .m-value.sub {
-      color: var(--accent);
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
     }
 
     /* anchor pill */
@@ -333,10 +344,10 @@
       gap: 5px;
       font-size: 11px;
       color: var(--muted);
-      background: rgba(255, 255, 255, 0.04);
+      background: var(--bg);
       border: 1px solid var(--border);
-      padding: 4px 10px;
-      border-radius: 20px;
+      padding: 4px 8px;
+      border-radius: 4px;
     }
 
     /* listing date */
@@ -353,20 +364,20 @@
     #loading,
     #empty {
       text-align: center;
-      padding: 80px 20px;
+      padding: 60px 20px;
       color: var(--muted);
-      font-size: 15px;
+      font-size: 14px;
       grid-column: 1/-1;
     }
 
     .spinner {
-      width: 36px;
-      height: 36px;
-      border: 3px solid var(--border);
+      width: 28px;
+      height: 28px;
+      border: 2px solid var(--border);
       border-top-color: var(--accent);
       border-radius: 50%;
       animation: spin 0.8s linear infinite;
-      margin: 0 auto 14px;
+      margin: 0 auto 12px;
     }
 
     @keyframes spin {
@@ -377,31 +388,19 @@
 
     /* ── MARKET METER ── */
     .meter-section {
-      padding: 0 40px 24px;
+      padding: 0;
     }
 
     .meter-card {
-      background: linear-gradient(145deg, rgba(22, 26, 35, 0.95), rgba(13, 15, 20, 0.98));
+      background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 28px 36px;
+      border-radius: 4px;
+      padding: 24px;
       display: flex;
       align-items: center;
       gap: 40px;
       position: relative;
       overflow: hidden;
-      backdrop-filter: blur(20px);
-    }
-
-    .meter-card::before {
-      content: '';
-      position: absolute;
-      top: -50%;
-      left: -50%;
-      width: 200%;
-      height: 200%;
-      background: radial-gradient(circle at top left, rgba(99, 102, 241, 0.06) 0%, transparent 50%);
-      pointer-events: none;
     }
 
     .gauge-wrapper {
@@ -420,43 +419,42 @@
     .gauge-bg {
       fill: none;
       stroke: var(--border);
-      stroke-width: 14;
-      stroke-linecap: round;
+      stroke-width: 10;
+      stroke-linecap: square;
     }
 
     .gauge-fill {
       fill: none;
-      stroke-width: 14;
-      stroke-linecap: round;
+      stroke-width: 10;
+      stroke-linecap: square;
       transition: stroke-dashoffset 1.2s cubic-bezier(0.4, 0, 0.2, 1),
         stroke 0.6s ease;
-      filter: drop-shadow(0 0 8px var(--gauge-color, #6366f1));
     }
 
     .gauge-needle {
       position: absolute;
       bottom: 4px;
       left: 50%;
-      width: 3px;
+      width: 2px;
       height: 64px;
-      background: linear-gradient(to top, #fff, rgba(255, 255, 255, 0.2));
-      border-radius: 3px;
+      background: var(--text);
+      border-radius: 0;
       transform-origin: bottom center;
       transform: rotate(-90deg);
       transition: transform 1.2s cubic-bezier(0.4, 0, 0.2, 1);
-      box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+      box-shadow: none;
     }
 
     .gauge-needle::after {
       content: '';
       position: absolute;
-      bottom: -5px;
-      left: -4px;
-      width: 11px;
-      height: 11px;
-      background: #fff;
+      bottom: -4px;
+      left: -3px;
+      width: 8px;
+      height: 8px;
+      background: var(--text);
       border-radius: 50%;
-      box-shadow: 0 0 12px rgba(255, 255, 255, 0.5);
+      box-shadow: none;
     }
 
     .gauge-score {
@@ -464,9 +462,9 @@
       bottom: -4px;
       left: 50%;
       transform: translateX(-50%);
-      font-size: 28px;
-      font-weight: 800;
-      letter-spacing: -1px;
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: normal;
     }
 
     .gauge-labels {
@@ -488,33 +486,18 @@
     }
 
     .meter-mood {
-      font-size: 24px;
-      font-weight: 800;
-      letter-spacing: -0.5px;
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: normal;
       display: flex;
       align-items: center;
       gap: 10px;
     }
 
     .mood-dot {
-      width: 12px;
-      height: 12px;
+      width: 10px;
+      height: 10px;
       border-radius: 50%;
-      animation: pulse-dot 2s ease-in-out infinite;
-    }
-
-    @keyframes pulse-dot {
-
-      0%,
-      100% {
-        opacity: 1;
-        transform: scale(1);
-      }
-
-      50% {
-        opacity: 0.5;
-        transform: scale(1.4);
-      }
     }
 
     .meter-details {
@@ -537,8 +520,8 @@
     }
 
     .meter-detail .md-value {
-      font-size: 16px;
-      font-weight: 700;
+      font-size: 14px;
+      font-weight: 600;
     }
 
     .meter-detail .md-value.positive {
@@ -551,21 +534,19 @@
 
     /* ── PAYWALL BANNER ── */
     .paywall-section {
-      padding: 0 40px 24px;
+      padding: 0;
     }
 
     .paywall-card {
-      background: linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(139, 92, 246, 0.12) 100%);
-      border: 1px dashed var(--accent);
-      border-radius: 20px;
-      padding: 24px 32px;
+      background: var(--surface);
+      border: 1px dashed var(--border);
+      border-radius: 4px;
+      padding: 20px 24px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       flex-wrap: wrap;
       gap: 20px;
-      backdrop-filter: blur(10px);
-      box-shadow: 0 8px 32px rgba(99, 102, 241, 0.06);
     }
 
     .paywall-info {
@@ -574,10 +555,10 @@
     }
 
     .paywall-title {
-      font-size: 17px;
-      font-weight: 800;
-      letter-spacing: -0.5px;
-      margin-bottom: 6px;
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: normal;
+      margin-bottom: 4px;
       color: #fff;
       display: flex;
       align-items: center;
@@ -598,12 +579,12 @@
     }
 
     .upi-badge {
-      background: rgba(255, 255, 255, 0.04);
+      background: var(--bg);
       border: 1px solid var(--border);
       padding: 8px 16px;
-      border-radius: 8px;
+      border-radius: 4px;
       font-size: 12px;
-      font-weight: 700;
+      font-weight: 500;
       color: var(--text);
       display: flex;
       align-items: center;
@@ -616,16 +597,16 @@
     }
 
     .key-input {
-      background: var(--surface);
+      background: var(--bg);
       border: 1px solid var(--border);
       color: var(--text);
-      padding: 8px 16px;
-      border-radius: 8px;
+      padding: 8px 12px;
+      border-radius: 4px;
       font-size: 13px;
-      font-weight: 600;
+      font-weight: 500;
       outline: none;
       width: 180px;
-      transition: border-color 0.2s;
+      transition: border-color 0.15s;
     }
 
     .key-input:focus {
@@ -633,15 +614,15 @@
     }
 
     .key-btn {
-      background: linear-gradient(135deg, var(--accent), #8b5cf6);
+      background: var(--accent);
       color: #fff;
       border: none;
       padding: 8px 16px;
-      border-radius: 8px;
+      border-radius: 4px;
       font-size: 13px;
-      font-weight: 700;
+      font-weight: 500;
       cursor: pointer;
-      transition: opacity 0.2s;
+      transition: opacity 0.15s;
     }
 
     .key-btn:hover {
@@ -650,13 +631,13 @@
 
     /* VIP ACTIVE HEADER BADGE */
     .vip-status-badge {
-      background: rgba(16, 185, 129, 0.12);
+      background: var(--invest-bg);
       color: var(--invest);
       border: 1px solid var(--invest);
-      padding: 6px 14px;
-      border-radius: 20px;
+      padding: 6px 12px;
+      border-radius: 4px;
       font-size: 12px;
-      font-weight: 700;
+      font-weight: 600;
       display: flex;
       align-items: center;
       gap: 6px;
@@ -668,18 +649,18 @@
     }
 
     .card.locked::before {
-      background: var(--border) !important;
+      display: none;
     }
 
     .card.locked .badge {
-      background: rgba(255, 255, 255, 0.04) !important;
+      background: var(--bg) !important;
       color: var(--muted) !important;
       border: 1px solid var(--border) !important;
     }
     
     .card.locked .prob-ring svg {
-      filter: blur(5px);
-      opacity: 0.25;
+      filter: blur(4px);
+      opacity: 0.2;
     }
 
     .card.locked .prob-text {
@@ -689,7 +670,7 @@
 
     .card.locked .prob-text::before {
       content: '🔒';
-      font-size: 18px;
+      font-size: 14px;
     }
 
     /* ── CONTROL PANEL ── */
@@ -697,7 +678,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 0 40px 24px;
+      padding: 0;
       gap: 20px;
       flex-wrap: wrap;
     }
@@ -706,27 +687,27 @@
       display: flex;
       background: var(--surface);
       border: 1px solid var(--border);
-      padding: 4px;
-      border-radius: 10px;
-      gap: 4px;
+      padding: 3px;
+      border-radius: 4px;
+      gap: 3px;
     }
 
     .tab-btn {
       background: transparent;
       color: var(--muted);
       border: none;
-      padding: 8px 18px;
+      padding: 6px 12px;
       font-size: 13px;
-      font-weight: 600;
-      border-radius: 8px;
+      font-weight: 500;
+      border-radius: 3px;
       cursor: pointer;
-      transition: background 0.2s, color 0.2s;
+      transition: background 0.15s, color 0.15s;
     }
 
     .tab-btn.active {
       background: var(--accent);
       color: #fff;
-      box-shadow: 0 4px 12px var(--accent-glow);
+      box-shadow: none;
     }
 
     .tab-btn:hover:not(.active) {
@@ -746,16 +727,16 @@
     .search-wrapper {
       position: relative;
       min-width: 240px;
-      width: 320px;
+      width: 300px;
       max-width: 100%;
     }
 
     .search-icon {
       position: absolute;
-      left: 14px;
+      left: 12px;
       top: 50%;
       transform: translateY(-50%);
-      font-size: 14px;
+      font-size: 13px;
       color: var(--muted);
     }
 
@@ -764,44 +745,43 @@
       background: var(--surface);
       border: 1px solid var(--border);
       color: var(--text);
-      padding: 10px 16px 10px 40px;
-      border-radius: 10px;
+      padding: 8px 12px 8px 32px;
+      border-radius: 4px;
       font-size: 13px;
-      font-weight: 500;
+      font-weight: 400;
       outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s;
+      transition: border-color 0.15s;
       box-sizing: border-box;
     }
 
     .search-input-field:focus {
       border-color: var(--accent);
-      box-shadow: 0 0 0 3px var(--accent-glow);
     }
 
     .sort-select {
       background: var(--surface);
       border: 1px solid var(--border);
       color: var(--text);
-      padding: 10px 16px;
-      border-radius: 10px;
+      padding: 8px 12px;
+      border-radius: 4px;
       font-size: 13px;
-      font-weight: 600;
+      font-weight: 500;
       outline: none;
       cursor: pointer;
-      transition: border-color 0.2s;
-      min-width: 200px;
+      transition: border-color 0.15s;
+      min-width: 180px;
     }
 
     .sort-select:focus {
       border-color: var(--accent);
     }
 
-    /* ── GLASSMORPHIC MODAL ── */
+    /* ── MINIMAL MODAL ── */
     .modal-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(8, 10, 15, 0.75);
-      backdrop-filter: blur(8px);
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: none;
       z-index: 10000;
       display: flex;
       align-items: center;
@@ -809,7 +789,7 @@
       padding: 20px;
       opacity: 0;
       pointer-events: none;
-      transition: opacity 0.3s ease;
+      transition: opacity 0.2s ease;
     }
 
     .modal-overlay.active {
@@ -818,15 +798,15 @@
     }
 
     .modal-container {
-      background: linear-gradient(145deg, rgba(22, 26, 35, 0.95), rgba(13, 15, 20, 0.98));
+      background: var(--surface);
       border: 1px solid var(--border);
       width: 100%;
-      max-width: 650px;
-      border-radius: 24px;
+      max-width: 600px;
+      border-radius: 4px;
       overflow: hidden;
-      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6);
-      transform: scale(0.95);
-      transition: transform 0.3s ease;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      transform: scale(0.98);
+      transition: transform 0.2s ease;
       max-height: 90vh;
       display: flex;
       flex-direction: column;
@@ -837,65 +817,63 @@
     }
 
     .modal-header {
-      padding: 24px 32px;
+      padding: 20px 24px;
       border-bottom: 1px solid var(--border);
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      background: rgba(255, 255, 255, 0.01);
+      background: transparent;
     }
 
     .modal-title {
-      font-size: 20px;
-      font-weight: 800;
-      letter-spacing: -0.5px;
+      font-size: 18px;
+      font-weight: 600;
       line-height: 1.3;
     }
 
     .modal-close {
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid var(--border);
-      color: var(--text);
+      background: transparent;
+      border: none;
+      color: var(--muted);
       font-size: 16px;
       cursor: pointer;
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      border-radius: 0;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: background 0.2s, color 0.2s;
+      transition: color 0.15s;
     }
 
     .modal-close:hover {
-      background: var(--skip-bg);
-      color: var(--skip);
-      border-color: rgba(239, 68, 68, 0.2);
+      background: transparent;
+      color: var(--text);
     }
 
     .modal-body {
-      padding: 32px;
+      padding: 24px;
       overflow-y: auto;
       flex: 1;
       display: flex;
       flex-direction: column;
-      gap: 24px;
+      gap: 20px;
     }
 
     .modal-section-title {
-      font-size: 12px;
+      font-size: 11px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
       color: var(--muted);
-      margin-bottom: 12px;
-      font-weight: 700;
+      margin-bottom: 8px;
+      font-weight: 600;
     }
 
     /* Modal metrics grid */
     .modal-metrics-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 16px;
+      gap: 12px;
     }
 
     @media (max-width: 500px) {
@@ -906,17 +884,17 @@
 
     .modal-verdict-card {
       background: var(--invest-bg);
-      border: 1px solid rgba(16, 185, 129, 0.25);
-      border-radius: 16px;
-      padding: 20px;
+      border: 1px solid rgba(0, 176, 116, 0.2);
+      border-radius: 4px;
+      padding: 16px;
       display: flex;
       align-items: center;
-      gap: 20px;
+      gap: 16px;
     }
 
     .modal-verdict-card.skip {
       background: var(--skip-bg);
-      border: 1px solid rgba(239, 68, 68, 0.2);
+      border: 1px solid rgba(223, 59, 59, 0.2);
     }
 
     .verdict-info {
@@ -924,23 +902,23 @@
     }
 
     .verdict-title {
-      font-size: 16px;
-      font-weight: 800;
-      margin-bottom: 4px;
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 2px;
     }
 
     .verdict-prob {
-      font-size: 13px;
+      font-size: 12px;
       color: var(--muted);
     }
 
     .modal-analysis-text {
-      background: rgba(255, 255, 255, 0.02);
+      background: var(--bg);
       border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 20px;
+      border-radius: 4px;
+      padding: 16px;
       font-size: 13px;
-      line-height: 1.6;
+      line-height: 1.5;
       color: var(--text);
     }
 
@@ -951,32 +929,36 @@
 
     /* ── RESPONSIVE ── */
     @media (max-width: 600px) {
-      .control-panel {
+      .main-container {
+        padding: 24px 16px;
+        gap: 24px;
+      }
+
+      header {
         padding-left: 16px;
         padding-right: 16px;
+      }
+
+      .control-panel {
         flex-direction: column;
         align-items: stretch;
       }
+
       .filter-tabs {
         justify-content: center;
       }
+
       .search-sort-group {
         flex-direction: column;
         align-items: stretch;
       }
+
       .search-wrapper {
         width: 100%;
       }
+
       .sort-select {
         width: 100%;
-      }
-
-      header,
-      .stats-bar,
-      .grid,
-      .meter-section {
-        padding-left: 16px;
-        padding-right: 16px;
       }
 
       .meter-card {
@@ -994,6 +976,14 @@
 </head>
 
 <body>
+  <script>
+    (function() {
+      const savedTheme = localStorage.getItem('theme');
+      if (savedTheme === 'light') {
+        document.body.classList.add('theme-light');
+      }
+    })();
+  </script>
 
   <header>
     <div class="logo">
@@ -1004,12 +994,15 @@
       </div>
     </div>
     <div class="header-right">
+      <button class="theme-btn" id="theme-toggle" onclick="toggleTheme()" title="Toggle Theme">🌓</button>
       <!-- 👇 VIP Active badge -->
       <span class="vip-status-badge" id="vip-header-badge" style="display: none;">👑 VIP Active</span>
       <span id="last-updated">Fetching data…</span>
       <button id="refresh-btn" onclick="triggerSync()">⚡ Sync Latest Data</button>
     </div>
   </header>
+
+  <main class="main-container">
 
   <div class="stats-bar">
     <div class="stat-card total">
@@ -1109,29 +1102,29 @@
   </div>
 
   <!-- ── IPO BIDDING CHEAT SHEET ── -->
-  <h2 style="margin: 40px 40px 20px; font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+  <h2 style="margin: 40px 40px 20px; font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px;">
     <span style="color: var(--accent);">💡</span> Smart IPO Bidding Cheat Sheet (Beginners)
   </h2>
-  <div class="cheat-sheet-container" style="margin: 0 40px 20px; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
-    <div style="background: rgba(255,255,255,0.01); padding: 18px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.03);">
-      <h3 style="font-size: 15px; font-weight: 600; color: #8b5cf6; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">🎯 Tick "Cut-off Price"</h3>
+  <div class="cheat-sheet-container" style="margin: 0 40px 20px; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+    <div style="background: var(--bg); padding: 16px; border-radius: 4px; border: 1px solid var(--border);">
+      <h3 style="font-size: 14px; font-weight: 600; color: var(--accent); margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">🎯 Tick "Cut-off Price"</h3>
       <p style="font-size: 13px; color: var(--muted); line-height: 1.5;">Always select the <strong>"Cut-off Price"</strong> box. If you bid below the final issue price on popular IPOs, your application gets rejected immediately.</p>
     </div>
-    <div style="background: rgba(255,255,255,0.01); padding: 18px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.03);">
-      <h3 style="font-size: 15px; font-weight: 600; color: #8b5cf6; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">💳 PAN Name Match</h3>
+    <div style="background: var(--bg); padding: 16px; border-radius: 4px; border: 1px solid var(--border);">
+      <h3 style="font-size: 14px; font-weight: 600; color: var(--accent); margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">💳 PAN Name Match</h3>
       <p style="font-size: 13px; color: var(--muted); line-height: 1.5;">Your Demat account PAN name <strong>must match</strong> your Bank/UPI account name. Third-party payments (e.g. paying with a spouse's UPI) get auto-rejected.</p>
     </div>
-    <div style="background: rgba(255,255,255,0.01); padding: 18px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.03);">
-      <h3 style="font-size: 15px; font-weight: 600; color: #8b5cf6; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">⚠️ SME Capital Warning</h3>
+    <div style="background: var(--bg); padding: 16px; border-radius: 4px; border: 1px solid var(--border);">
+      <h3 style="font-size: 14px; font-weight: 600; color: var(--accent); margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">⚠️ SME Capital Warning</h3>
       <p style="font-size: 13px; color: var(--muted); line-height: 1.5;">SME IPOs require ₹1.2L+ minimum capital and must be traded in full lots (no single shares). Only apply if you understand the liquidity risks.</p>
     </div>
-    <div style="background: rgba(255,255,255,0.01); padding: 18px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.03);">
-      <h3 style="font-size: 15px; font-weight: 600; color: #8b5cf6; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">🕒 Bidding Timing</h3>
+    <div style="background: var(--bg); padding: 16px; border-radius: 4px; border: 1px solid var(--border);">
+      <h3 style="font-size: 14px; font-weight: 600; color: var(--accent); margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">🕒 Bidding Timing</h3>
       <p style="font-size: 13px; color: var(--muted); line-height: 1.5;">Check final subscription trends and our AI predictions on the <strong>last day of bidding (Day 3)</strong> before applying to avoid sudden drops.</p>
     </div>
   </div>
 
-  <h2 style="margin: 40px 40px 20px; font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+  <h2 style="margin: 40px 40px 20px; font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px;">
     <span style="color: var(--accent);">📊</span> Past Performance Scorecard
   </h2>
   <div class="grid" id="scorecard-grid">
@@ -1170,39 +1163,32 @@
       }
       const profit = Math.round(ipo.gmp * ipo.lot_size);
       const sign = profit >= 0 ? '+' : '';
-      return `🔥 Expected Listing Profit: ${sign}₹${profit.toLocaleString('en-IN')} per lot (${sign}${ipo.gmp_pct.toFixed(1)}% gain)`;
+      return `Expected Listing Profit: ${sign}₹${profit.toLocaleString('en-IN')} per lot (${sign}${ipo.gmp_pct.toFixed(1)}% gain)`;
     }
 
     function getDemandMeterText(sub) {
       if (sub == null || isNaN(sub) || sub <= 0) return '—';
       
-      let emoji = '😐';
       let speed = 'Low';
       if (sub >= 25) {
-        emoji = '🚀';
         speed = 'Extreme';
       } else if (sub >= 10) {
-        emoji = '🤩';
         speed = 'Very High';
       } else if (sub >= 3) {
-        emoji = '🔥';
         speed = 'High';
       } else if (sub >= 1.1) {
-        emoji = '🟢';
         speed = 'Healthy';
       } else if (sub >= 0.9) {
-        emoji = '🟡';
         speed = 'Fully Subscribed';
       } else {
-        emoji = '🔴';
         speed = 'Under-subscribed';
       }
       
       const bidRatio = Math.round(sub);
       if (bidRatio >= 1) {
-        return `${emoji} ${speed} Demand (${bidRatio} people bidding for every 1 share)`;
+        return `${speed} Demand (${bidRatio} people bidding for every 1 share)`;
       } else {
-        return `${emoji} ${speed} Demand (${sub.toFixed(1)}x demand)`;
+        return `${speed} Demand (${sub.toFixed(1)}x demand)`;
       }
     }
 
@@ -1214,14 +1200,13 @@
       const gmp = ipo.gmp_pct != null ? ipo.gmp_pct.toFixed(1) + '%' : '—';
       const sub = ipo.subscription_x != null ? ipo.subscription_x.toFixed(1) + 'x' : '—';
       const price = ipo.ipo_price != null ? '₹' + ipo.ipo_price : '—';
-      const anchor = ipo.has_anchor ? '✅ Anchor investors' : '❌ No anchor';
+      const anchor = ipo.has_anchor ? 'Anchor investors' : 'No anchor';
       
-      // 👇 Dynamic open/close/listing dates extraction
-      const open = ipo.open_date ? `🟢 Open: ${ipo.open_date}` : '';
-      const close = ipo.close_date ? `🔴 Close: ${ipo.close_date}` : '';
-      const listing = ipo.listing_date ? `📅 Listing: ${ipo.listing_date}` : '';
+      // Dynamic open/close/listing dates extraction (no emojis)
+      const open = ipo.open_date ? `Open: ${ipo.open_date}` : '';
+      const close = ipo.close_date ? `Close: ${ipo.close_date}` : '';
+      const listing = ipo.listing_date ? `Listing: ${ipo.listing_date}` : '';
       
-      // 👇 Dynamic IPO Type glowing tag
       const type = ipo.ipo_type || 'Mainboard';
       const typeCls = type === 'SME' ? 'sme' : 'mainboard';
 
@@ -1229,6 +1214,9 @@
       const badgeLabel = isLocked ? 'LOCKED (AI)' : label;
       const onclickAttr = isLocked ? '' : `onclick="showModal(${index})"`;
       const isClosed = ipo.status === 'closed';
+
+      // Clean score display
+      const scoreDisplay = isLocked ? '🔒' : `${Math.round(prob * 100)}%`;
 
       return `
       <div class="card ${cls}" ${onclickAttr}>
@@ -1238,19 +1226,22 @@
             <div style="margin-top:8px; display: flex; gap: 8px; flex-wrap: wrap;">
               <span class="badge ${isLocked ? 'skip' : cls}">${icon} ${badgeLabel}</span>
               <span class="badge ${typeCls}">${type}</span>
-              ${isClosed ? '<span class="badge skip">🔒 CLOSED</span>' : ''}
+              ${isClosed ? '<span class="badge skip">CLOSED</span>' : ''}
             </div>
           </div>
-          ${makeRing(prob, label)}
+          <div class="card-score">
+            <div class="score-num ${isLocked ? 'skip' : cls}">${scoreDisplay}</div>
+            <div class="score-label">AI Score</div>
+          </div>
         </div>
         <div class="metrics">
           <div class="metric">
             <div class="m-label">GMP %</div>
-            <div class="m-value gmp">${gmp}</div>
+            <div class="m-value">${gmp}</div>
           </div>
           <div class="metric">
             <div class="m-label">Subscription</div>
-            <div class="m-value sub">${sub}</div>
+            <div class="m-value">${sub}</div>
           </div>
           <div class="metric">
             <div class="m-label">IPO Price</div>
@@ -1508,6 +1499,11 @@
       }
     }
 
+    function toggleTheme() {
+      const isLight = document.body.classList.toggle('theme-light');
+      localStorage.setItem('theme', isLight ? 'light' : 'dark');
+    }
+
     function activateVIPKey() {
       const field = document.getElementById('key-input-field');
       const key = field.value.trim();
@@ -1648,7 +1644,6 @@
         document.getElementById('mood-label').textContent = mood;
         document.getElementById('mood-label').style.color = color;
         document.getElementById('mood-dot').style.background = color;
-        document.getElementById('mood-dot').style.boxShadow = `0 0 12px ${color}`;
 
         document.getElementById('nifty-price').textContent = m.nifty_price ? m.nifty_price.toLocaleString('en-IN') : '—';
 
@@ -1676,7 +1671,7 @@
         const needleDeg = -90 + (score / 100) * 180;
         document.getElementById('gauge-needle').style.transform = `rotate(${needleDeg}deg)`;
 
-        document.getElementById('meter-card').style.borderColor = color + '44';
+        document.getElementById('meter-card').style.borderColor = color;
 
       } catch (e) {
         console.log('Market meter not available:', e.message);
@@ -1702,6 +1697,8 @@
       loadMarketMeter();
     }, 5 * 60 * 1000); // auto-refresh every 5 min
   </script>
+
+  </main>
 
   <!-- ── DETAIL MODAL ── -->
   <div class="modal-overlay" id="detail-modal" onclick="closeModal(event)">
@@ -1777,7 +1774,7 @@
         <!-- Dates & Subscriptions -->
         <div>
           <div class="modal-section-title">Timeline & Info</div>
-          <div style="background: rgba(255,255,255,0.01); border: 1px solid var(--border); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 10px; font-size: 13px;">
+          <div style="background: var(--bg); border: 1px solid var(--border); border-radius: 4px; padding: 16px; display: flex; flex-direction: column; gap: 10px; font-size: 13px;">
             <div style="display: flex; justify-content: space-between;"><span style="color: var(--muted)">Offer Open Date:</span><strong id="modal-date-open">—</strong></div>
             <div style="display: flex; justify-content: space-between;"><span style="color: var(--muted)">Offer Close Date:</span><strong id="modal-date-close">—</strong></div>
             <div style="display: flex; justify-content: space-between;"><span style="color: var(--muted)">Expected Listing Date:</span><strong id="modal-date-listing">—</strong></div>
@@ -1787,8 +1784,8 @@
 
         <!-- Dynamic Smart Bidding Tip -->
         <div style="margin-top: 20px;">
-          <div class="modal-section-title" style="color: #8b5cf6;">💡 Smart Bidding Tip for Beginners</div>
-          <div class="modal-analysis-text" id="modal-smart-tip" style="background: rgba(139, 92, 246, 0.05); border: 1px solid rgba(139, 92, 246, 0.2); border-radius: 12px; padding: 16px; line-height: 1.5; font-size: 13px;">
+          <div class="modal-section-title" style="color: var(--accent);">💡 Smart Bidding Tip for Beginners</div>
+          <div class="modal-analysis-text" id="modal-smart-tip" style="background: var(--bg); border: 1px solid var(--border); border-radius: 4px; padding: 16px; line-height: 1.5; font-size: 13px;">
             Loading tip...
           </div>
         </div>
