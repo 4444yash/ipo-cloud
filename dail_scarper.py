@@ -116,8 +116,15 @@ def scrape_daily_ipos():
 
             # GMP Parsing
             gmp_text = cells[1].text
-            gmp_match = re.search(r"₹\s*(\d+)", gmp_text)
-            gmp = float(gmp_match.group(1)) if gmp_match else 0.0
+            # Support negative GMP (e.g. -₹10, ₹ -10, or ₹-10)
+            gmp_match = re.search(r"(-?)\s*₹?\s*(-?\d+)", gmp_text)
+            if gmp_match:
+                is_neg = '-' in gmp_match.group(1) or '-' in gmp_match.group(2)
+                val = abs(int(gmp_match.group(2)))
+                gmp = float(-val if is_neg else val)
+            else:
+                gmp = 0.0
+
 
             # Subscription, Price, Size, Lot
             subscription_x = clean_number(cells[3].text)
@@ -285,10 +292,77 @@ def upsert_ipos(ipo_rows):
     conn.close()
     print(f"[OK] Database Updated.")
 
+def update_listed_status_from_tracker(driver):
+    tracker_url = "https://www.investorgain.com/report/ipo-gmp-performance-tracker/377/"
+    print(f"\n[*] Connecting to performance tracker: {tracker_url}...")
+    try:
+        driver.get(tracker_url)
+        wait = WebDriverWait(driver, 30)
+        wait.until(EC.presence_of_element_located((By.ID, "reportTable")))
+        time.sleep(2)
+        rows = driver.find_elements(By.CSS_SELECTOR, "#reportTable tr")
+        print(f"[*] Found {len(rows)} rows in performance tracker.")
+        
+        conn = sqlite3.connect(DB_PATH)
+        cur = conn.cursor()
+        
+        updated_count = 0
+        for row in rows:
+            cells = row.find_elements(By.TAG_NAME, "td")
+            if len(cells) < 10:
+                continue
+            
+            raw_name = cells[0].text.strip()
+            if not raw_name:
+                continue
+            
+            # Clean name
+            clean_name = raw_name
+            for suffix in [" SME", " IPO", " InvIT"]:
+                if clean_name.endswith(suffix):
+                    clean_name = clean_name[:-len(suffix)].strip()
+                    break
+            
+            # Parse Listing Price
+            lp_text = cells[8].text.strip()
+            lp_match = re.search(r"₹\s*(\d+\.?\d*)", lp_text)
+            if lp_match:
+                listing_price = float(lp_match.group(1))
+                
+                # Update database if the IPO is tracked in raw data
+                cur.execute("SELECT is_listed, listing_price FROM ipo_raw_data WHERE ipo_name = ?", (clean_name,))
+                db_row = cur.fetchone()
+                if db_row:
+                    db_is_listed, db_lp = db_row
+                    if not db_is_listed or not db_lp:
+                        cur.execute("""
+                        UPDATE ipo_raw_data
+                        SET is_listed = 1, listing_price = ?, listing_date = ?
+                        WHERE ipo_name = ?
+                        """, (listing_price, cells[2].text.strip().split("\n")[0].strip(), clean_name))
+                        updated_count += 1
+                        print(f"    -> Updated listed status for {clean_name}: Price = {listing_price}")
+        
+        conn.commit()
+        conn.close()
+        print(f"[*] Updated {updated_count} IPOs from performance tracker.")
+    except Exception as e:
+        print(f"[ERR] Error scraping performance tracker: {e}")
+
 if __name__ == "__main__":
     try:
+        # 1. Scrape live IPOs
         ipos = scrape_daily_ipos()
         upsert_ipos(ipos)
+        
+        # 2. Scrape performance tracker to update listing prices of past IPOs
+        print("\n[*] Starting Performance Tracker Scraper...")
+        driver = get_driver()
+        try:
+            update_listed_status_from_tracker(driver)
+        finally:
+            driver.quit()
+            
         print("[*] Scrape Complete.")
     except Exception as e:
         print(f"[ERR] Scraper Failed: {e}")

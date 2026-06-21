@@ -50,11 +50,11 @@ print("✅ Model and Scaler loaded")
 
 conn = sqlite3.connect(DB_PATH)
 
-# Get data scraped in the last 24 hours that is NOT yet listed
+# Get all unlisted IPOs (both active and closed-but-not-yet-listed)
 query = """
 SELECT *
 FROM ipo_raw_data
-WHERE scraped_at >= datetime('now', '-24 hours') AND is_listed = 0
+WHERE is_listed = 0
 """
 
 try:
@@ -66,7 +66,7 @@ except Exception as e:
 
 conn.close()
 
-print(f"✅ Rows scraped recently: {len(df)}")
+print(f"✅ Total unlisted IPOs loaded: {len(df)}")
 
 if df.empty:
     print("⚠️ No IPO data found for today. Exiting.")
@@ -79,11 +79,11 @@ if df.empty:
 # Remove listed or closed IPOs that we should no longer track as 'Live'
 # Logic: We already filtered by is_listed = 0 in SQL, but we keep this as a double-safety
 listed_patterns = [
-    r"L@", r"\(-?\d+\.?\d*%\)", r"Listed", r"listed", 
-    r"Allotted", r"Basis", r"Allotment", r"allotted", r"basis"
+    r"L@", r"Listed", r"listed"
 ]
 pattern = "|".join(listed_patterns)
 df = df[~df["ipo_name"].str.contains(pattern, regex=True, na=False)]
+
 
 # Filter out IPOs whose close date has passed (after 5 PM IST on close_date)
 from datetime import timezone, timedelta
