@@ -19,5 +19,6 @@ COPY . .
 RUN pip install -r requirements-scraper.txt
 RUN pip install -r requirements-web.txt
 
-# 5. Start the web service
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8080"]
+# 5. Start the web service using the dynamic PORT assigned by Railway
+CMD uvicorn app:app --host 0.0.0.0 --port ${PORT:-8080}
+
