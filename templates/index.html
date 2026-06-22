@@ -1524,6 +1524,11 @@
         const res = await fetch('/today?key=' + encodeURIComponent(vipKey));
         const data = await res.json();
 
+        if (!Array.isArray(data)) {
+          grid.innerHTML = `<div id="empty">⚠️ ${data.error || 'Unexpected server response.'}</div>`;
+          return;
+        }
+
         const isLocked = data.some(d => d.decision_label === 'LOCKED');
         const paywallBanner = document.getElementById('paywall-banner');
         const vipHeaderBadge = document.getElementById('vip-header-badge');
@@ -1572,7 +1577,7 @@
         const res = await fetch('/scorecard_data');
         if (!res.ok) throw new Error('API returned ' + res.status);
         const data = await res.json();
-        if (!data.length) {
+        if (!Array.isArray(data) || !data.length) {
           grid.innerHTML = '<div id="empty">No historical data found.</div>';
           return;
         }
@@ -1632,7 +1637,7 @@
         if (!res.ok) throw new Error('API returned ' + res.status);
         const data = await res.json();
 
-        if (!data.length) return;
+        if (!Array.isArray(data) || !data.length) return;
         const m = data[0];
 
         const score = m.score ?? 50;

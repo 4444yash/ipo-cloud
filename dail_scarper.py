@@ -267,7 +267,7 @@ def upsert_ipos(ipo_rows):
 
         if old_data:
             old_gmp, old_listing_price, old_is_listed = old_data
-            final_gmp = ipo["gmp"] if (ipo["gmp"] > 0 or not old_gmp) else old_gmp
+            final_gmp = ipo["gmp"] if (ipo["gmp"] != 0 or not old_gmp) else old_gmp
             final_lp = ipo["listing_price"] if (ipo["listing_price"] or not old_listing_price) else old_listing_price
             final_is_listed = max(ipo["is_listed"], old_is_listed)
 
