@@ -123,7 +123,7 @@ def is_already_listed(row):
                 elif now_ist.month in [11, 12] and parsed_close.month in [1, 2]:
                     close_dt = close_dt.replace(year=now_ist.year + 1)
                 
-                if (now_ist.date() - close_dt.date()).days >= 5:
+                if (now_ist.date() - close_dt.date()).days >= 8:
                     return True
             except:
                 pass

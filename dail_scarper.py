@@ -408,8 +408,8 @@ def auto_mark_listed_by_date():
                     close_dt = parsed_close.replace(year=now.year)
                     if now.month in [1, 2] and parsed_close.month in [11, 12]:
                         close_dt = close_dt.replace(year=now.year - 1)
-                    # If close date was 5+ days ago, likely already listed
-                    if (now - close_dt).days >= 5:
+                    # If close date was 8+ days ago, likely already listed
+                    if (now - close_dt).days >= 8:
                         cur.execute("""
                             UPDATE ipo_raw_data SET is_listed = 1
                             WHERE ipo_name = ? AND is_listed = 0
