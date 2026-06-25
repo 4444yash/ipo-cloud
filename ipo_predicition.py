@@ -84,11 +84,59 @@ listed_patterns = [
 pattern = "|".join(listed_patterns)
 df = df[~df["ipo_name"].str.contains(pattern, regex=True, na=False)]
 
-
-# Filter out IPOs whose close date has passed (after 5 PM IST on close_date)
+# Define timezone for date-based checks
 from datetime import timezone, timedelta
 ist_tz = timezone(timedelta(hours=5, minutes=30))
 now_ist = datetime.now(timezone.utc).astimezone(ist_tz)
+
+# Secondary safety net: exclude IPOs whose listing date has passed, or close date was 5+ days ago
+def is_already_listed(row):
+    if row.get("is_listed") == 1 or (pd.notna(row.get("listing_price")) and row.get("listing_price") is not None and row.get("listing_price") != ''):
+        return True
+    
+    listing_date_str = row.get("listing_date")
+    if pd.notna(listing_date_str) and isinstance(listing_date_str, str):
+        clean_date = listing_date_str.strip().split("\n")[0].strip()
+        if clean_date:
+            try:
+                parsed = datetime.strptime(clean_date, "%d-%b")
+                listing_dt = parsed.replace(year=now_ist.year)
+                if now_ist.month in [1, 2] and parsed.month in [11, 12]:
+                    listing_dt = listing_dt.replace(year=now_ist.year - 1)
+                elif now_ist.month in [11, 12] and parsed.month in [1, 2]:
+                    listing_dt = listing_dt.replace(year=now_ist.year + 1)
+                
+                if (now_ist.date() - listing_dt.date()).days >= 1:
+                    return True
+            except:
+                pass
+
+    close_date_str = row.get("close_date")
+    if pd.notna(close_date_str) and isinstance(close_date_str, str):
+        clean_close = close_date_str.strip().split("\n")[0].strip()
+        if clean_close:
+            try:
+                parsed_close = datetime.strptime(clean_close, "%d-%b")
+                close_dt = parsed_close.replace(year=now_ist.year)
+                if now_ist.month in [1, 2] and parsed_close.month in [11, 12]:
+                    close_dt = close_dt.replace(year=now_ist.year - 1)
+                elif now_ist.month in [11, 12] and parsed_close.month in [1, 2]:
+                    close_dt = close_dt.replace(year=now_ist.year + 1)
+                
+                if (now_ist.date() - close_dt.date()).days >= 5:
+                    return True
+            except:
+                pass
+    return False
+
+# Filter out listed IPOs
+initial_len = len(df)
+df = df[~df.apply(is_already_listed, axis=1)]
+filtered_len = initial_len - len(df)
+if filtered_len > 0:
+    print(f"ℹ️ Filtered out {filtered_len} already-listed IPOs based on date logic.")
+
+# Filter out IPOs whose close date has passed (after 5 PM IST on close_date)
 
 def get_ipo_status(close_date_str):
     if not close_date_str or not isinstance(close_date_str, str):

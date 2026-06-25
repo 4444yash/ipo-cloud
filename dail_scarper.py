@@ -88,11 +88,19 @@ def scrape_daily_ipos():
         wait.until(EC.presence_of_element_located((By.ID, "reportTable")))
         
         # Give it a tiny bit of extra time for rows to render
-        time.sleep(2)
+        time.sleep(3)
 
         # Get all rows from the table
         rows = driver.find_elements(By.CSS_SELECTOR, "#reportTable tr")
         print(f"[*] Total rows found (including headers): {len(rows)}")
+
+        # Retry once if no data rows found (page may not have fully rendered)
+        data_rows = [r for r in rows if len(r.find_elements(By.TAG_NAME, 'td')) >= 10]
+        if len(data_rows) == 0:
+            print("[*] No data rows found, retrying with longer wait...")
+            time.sleep(5)
+            rows = driver.find_elements(By.CSS_SELECTOR, "#reportTable tr")
+            print(f"[*] Retry: Total rows found: {len(rows)}")
 
         for i, row in enumerate(rows):
             cells = row.find_elements(By.TAG_NAME, "td")
@@ -203,7 +211,9 @@ def scrape_daily_ipos():
                 "ipo_type": ipo_type
             })
 
-        print(f"[*] Successfully parsed {len(ipo_rows)} IPOs.")
+        listed_count = sum(1 for ipo in ipo_rows if ipo["is_listed"] == 1)
+        unlisted_count = len(ipo_rows) - listed_count
+        print(f"[*] Successfully parsed {len(ipo_rows)} IPOs ({listed_count} listed, {unlisted_count} unlisted).")
 
     except Exception as e:
         print(f"[ERR] Error during scraping: {e}")
@@ -299,7 +309,7 @@ def update_listed_status_from_tracker(driver):
         driver.get(tracker_url)
         wait = WebDriverWait(driver, 30)
         wait.until(EC.presence_of_element_located((By.ID, "reportTable")))
-        time.sleep(2)
+        time.sleep(5)  # Wait longer for JS-rendered table content
         rows = driver.find_elements(By.CSS_SELECTOR, "#reportTable tr")
         print(f"[*] Found {len(rows)} rows in performance tracker.")
         
@@ -316,7 +326,7 @@ def update_listed_status_from_tracker(driver):
             if not raw_name:
                 continue
             
-            # Clean name
+            # Clean name — strip common suffixes to match our DB
             clean_name = raw_name
             for suffix in [" SME", " IPO", " InvIT"]:
                 if clean_name.endswith(suffix):
@@ -349,6 +359,70 @@ def update_listed_status_from_tracker(driver):
     except Exception as e:
         print(f"[ERR] Error scraping performance tracker: {e}")
 
+def auto_mark_listed_by_date():
+    """Safety net: auto-mark IPOs as listed if their listing_date has passed by 1+ days.
+    This handles cases where the scraper fails to detect L@ patterns or when
+    the page no longer shows the IPO."""
+    print("\n[*] Running date-based auto-listing check...")
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+    
+    cur.execute("""
+        SELECT ipo_name, listing_date, close_date FROM ipo_raw_data
+        WHERE is_listed = 0 AND (listing_date IS NOT NULL AND listing_date != '')
+    """)
+    candidates = cur.fetchall()
+    
+    now = datetime.now()
+    updated_count = 0
+    
+    for ipo_name, listing_date_str, close_date_str in candidates:
+        try:
+            # Parse listing_date (format: "18-Jun" or "2-Jul")
+            clean_date = str(listing_date_str).strip().split("\n")[0].strip()
+            if not clean_date:
+                continue
+            parsed = datetime.strptime(clean_date, "%d-%b")
+            listing_dt = parsed.replace(year=now.year)
+            
+            # Handle year boundary (e.g., Dec listing checked in Jan)
+            if now.month in [1, 2] and parsed.month in [11, 12]:
+                listing_dt = listing_dt.replace(year=now.year - 1)
+            elif now.month in [11, 12] and parsed.month in [1, 2]:
+                listing_dt = listing_dt.replace(year=now.year + 1)
+            
+            # If listing date was 1+ days ago, mark as listed
+            if (now - listing_dt).days >= 1:
+                cur.execute("""
+                    UPDATE ipo_raw_data SET is_listed = 1
+                    WHERE ipo_name = ? AND is_listed = 0
+                """, (ipo_name,))
+                updated_count += 1
+                print(f"    -> Auto-marked '{ipo_name}' as listed (listing_date={clean_date}, {(now - listing_dt).days} days ago)")
+        except Exception as e:
+            # Also try with close_date as fallback (listing is typically 3 days after close)
+            try:
+                if close_date_str:
+                    clean_close = str(close_date_str).strip().split("\n")[0].strip()
+                    parsed_close = datetime.strptime(clean_close, "%d-%b")
+                    close_dt = parsed_close.replace(year=now.year)
+                    if now.month in [1, 2] and parsed_close.month in [11, 12]:
+                        close_dt = close_dt.replace(year=now.year - 1)
+                    # If close date was 5+ days ago, likely already listed
+                    if (now - close_dt).days >= 5:
+                        cur.execute("""
+                            UPDATE ipo_raw_data SET is_listed = 1
+                            WHERE ipo_name = ? AND is_listed = 0
+                        """, (ipo_name,))
+                        updated_count += 1
+                        print(f"    -> Auto-marked '{ipo_name}' as listed (close_date={clean_close}, {(now - close_dt).days} days past close)")
+            except:
+                pass
+    
+    conn.commit()
+    conn.close()
+    print(f"[*] Auto-listed {updated_count} IPOs by date.")
+
 if __name__ == "__main__":
     try:
         # 1. Scrape live IPOs
@@ -362,6 +436,9 @@ if __name__ == "__main__":
             update_listed_status_from_tracker(driver)
         finally:
             driver.quit()
+        
+        # 3. Safety net: auto-mark IPOs whose listing date has passed
+        auto_mark_listed_by_date()
             
         print("[*] Scrape Complete.")
     except Exception as e:
