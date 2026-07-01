@@ -205,7 +205,7 @@
     /* ── GRID ── */
     .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
       gap: 20px;
       padding: 0;
     }
@@ -882,6 +882,49 @@
       }
     }
 
+    .modal-metrics-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    @media (max-width: 480px) {
+      .modal-metrics-row {
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+    }
+
+    /* Section & Container Styles */
+    .section-title {
+      margin: 40px 40px 20px;
+      font-size: 16px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .cheat-sheet-container {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 20px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+      margin: 0 40px 20px;
+    }
+
+    @media (max-width: 768px) {
+      .section-title {
+        margin: 24px 16px 16px;
+      }
+      .cheat-sheet-container {
+        margin: 0 16px 20px;
+      }
+    }
+
     .modal-verdict-card {
       background: var(--invest-bg);
       border: 1px solid rgba(0, 176, 116, 0.2);
@@ -928,36 +971,79 @@
     }
 
     /* ── RESPONSIVE ── */
-    @media (max-width: 600px) {
+    @media (max-width: 768px) {
       .main-container {
-        padding: 24px 16px;
-        gap: 24px;
+        padding: 20px 16px;
+        gap: 20px;
       }
 
       header {
-        padding-left: 16px;
-        padding-right: 16px;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+        padding: 16px;
+      }
+
+      .header-right {
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 8px;
+        width: 100%;
+      }
+
+      #last-updated {
+        flex-grow: 1;
+        text-align: center;
+      }
+
+      #refresh-btn {
+        width: 100%;
+        order: 10;
+      }
+
+      .stats-bar {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        padding: 12px;
+        text-align: center;
+      }
+
+      .stat-card {
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
       }
 
       .control-panel {
         flex-direction: column;
         align-items: stretch;
+        gap: 16px;
       }
 
       .filter-tabs {
-        justify-content: center;
+        width: 100%;
+        overflow-x: auto;
+        white-space: nowrap;
+        display: flex;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .filter-tabs::-webkit-scrollbar {
+        display: none;
+      }
+
+      .tab-btn {
+        flex: 0 0 auto;
       }
 
       .search-sort-group {
         flex-direction: column;
         align-items: stretch;
-      }
-
-      .search-wrapper {
         width: 100%;
       }
 
-      .sort-select {
+      .search-wrapper, .sort-select {
         width: 100%;
       }
 
@@ -966,10 +1052,88 @@
         align-items: center;
         text-align: center;
         gap: 20px;
+        padding: 16px;
       }
 
       .meter-details {
         justify-content: center;
+        width: 100%;
+      }
+
+      .paywall-card {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 16px;
+        gap: 16px;
+      }
+
+      .paywall-action {
+        flex-direction: column;
+        align-items: stretch;
+        width: 100%;
+      }
+
+      .upi-badge {
+        justify-content: center;
+      }
+
+      .key-input-group {
+        width: 100%;
+      }
+
+      .key-input {
+        flex: 1;
+        width: auto;
+      }
+
+      /* Slide-up modal on mobile */
+      .modal-container {
+        max-height: 92vh;
+        border-radius: 8px 8px 0 0;
+        margin-bottom: 0;
+        position: fixed;
+        bottom: 0;
+        transform: translateY(100%);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .modal-overlay.active .modal-container {
+        transform: translateY(0);
+      }
+
+      .modal-body {
+        padding: 16px;
+        gap: 16px;
+      }
+
+      .modal-header {
+        padding: 16px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .stats-bar {
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+      .stat-card {
+        flex-direction: row;
+        justify-content: space-between;
+        width: 100%;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 8px;
+      }
+      .stat-card:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+      }
+      .meter-details {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+      }
+      .meter-detail {
+        text-align: center;
       }
     }
   </style>
@@ -1102,10 +1266,10 @@
   </div>
 
   <!-- ── IPO BIDDING CHEAT SHEET ── -->
-  <h2 style="margin: 40px 40px 20px; font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+  <h2 class="section-title">
     <span style="color: var(--accent);">💡</span> Smart IPO Bidding Cheat Sheet (Beginners)
   </h2>
-  <div class="cheat-sheet-container" style="margin: 0 40px 20px; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+  <div class="cheat-sheet-container">
     <div style="background: var(--bg); padding: 16px; border-radius: 4px; border: 1px solid var(--border);">
       <h3 style="font-size: 14px; font-weight: 600; color: var(--accent); margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">🎯 Tick "Cut-off Price"</h3>
       <p style="font-size: 13px; color: var(--muted); line-height: 1.5;">Always select the <strong>"Cut-off Price"</strong> box. If you bid below the final issue price on popular IPOs, your application gets rejected immediately.</p>
@@ -1124,7 +1288,7 @@
     </div>
   </div>
 
-  <h2 style="margin: 40px 40px 20px; font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+  <h2 class="section-title">
     <span style="color: var(--accent);">📊</span> Past Performance Scorecard
   </h2>
   <div class="grid" id="scorecard-grid">
@@ -1749,7 +1913,7 @@
               <div class="m-label">Demand Meter</div>
               <div class="m-value sub" id="modal-metric-demand-meter" style="font-size: 14px; color: var(--accent);">—</div>
             </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div class="modal-metrics-row">
               <div class="metric">
                 <div class="m-label">GMP (Per Share)</div>
                 <div class="m-value gmp" id="modal-metric-gmp-rs">₹—</div>
@@ -1759,7 +1923,7 @@
                 <div class="m-value gmp" id="modal-metric-gmp-pct">—</div>
               </div>
             </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div class="modal-metrics-row">
               <div class="metric">
                 <div class="m-label">IPO Price</div>
                 <div class="m-value" id="modal-metric-price">—</div>
